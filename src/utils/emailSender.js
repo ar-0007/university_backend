@@ -8,10 +8,15 @@ const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.ethereal.email', // e.g., 'smtp.sendgrid.net'
   port: parseInt(process.env.EMAIL_PORT || '587', 10), // e.g., 587 or 465
   secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+  requireTLS: true, // Force TLS
   auth: {
     user: process.env.EMAIL_USER || 'your_ethereal_user', // e.g., 'apikey' for SendGrid
     pass: process.env.EMAIL_PASS || 'your_ethereal_pass', // e.g., SendGrid API Key
   },
+  // Add timeout settings to prevent hanging
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 30000,   // 30 seconds
+  socketTimeout: 60000,     // 60 seconds
 });
 
 const emailSender = {
