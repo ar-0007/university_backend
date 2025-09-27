@@ -298,19 +298,16 @@ const updatePaymentStatus = async (req, res) => {
           // Continue with email sending even if user creation fails
         }
 
-        // Only send course confirmation email for NEW users
-        if (isNewUser) {
-          await emailService.sendCoursePurchaseConfirmation({
-            customerName: purchase.customer_name,
-            customerEmail: purchase.customer_email,
-            courseTitle: purchase.course.title,
-            coursePrice: purchase.course_price,
-            accessCode: purchase.access_code,
-            instructorName: purchase.course.instructor ? `${purchase.course.instructor.first_name} ${purchase.course.instructor.last_name}` : 'Course Instructor'
-          });
-        } else {
-          console.log('Existing user purchase - course unlocked without additional emails');
-        }
+        // Send course confirmation email for ALL users (both new and existing)
+        await emailService.sendCoursePurchaseConfirmation({
+          customerName: purchase.customer_name,
+          customerEmail: purchase.customer_email,
+          courseTitle: purchase.course.title,
+          coursePrice: purchase.course_price,
+          accessCode: purchase.access_code,
+          instructorName: purchase.course.instructor ? `${purchase.course.instructor.first_name} ${purchase.course.instructor.last_name}` : 'Course Instructor'
+        });
+        console.log(`Course purchase confirmation email sent to: ${purchase.customer_email} (${isNewUser ? 'new' : 'existing'} user)`);
 
         // Send user credentials email ONLY for NEW users
         if (userAccount && userAccount.plainPassword) {
