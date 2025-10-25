@@ -31,13 +31,9 @@ const stripeWebhookRoutes = require('./src/routes/stripeWebhookRoutes');
 const assignmentRoutes = require('./src/routes/assignmentRoutes');
 const submissionRoutes = require('./src/routes/submissionRoutes');
 const quizRoutes = require('./src/routes/quizRoutes');
-const podcastRoutes = require('./src/routes/podcastRoutes');
 const instructorRoutes = require('./src/routes/instructorRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const adminSeriesUnlockRoutes = require('./src/routes/admin/seriesUnlock');
-
-// Import scheduler
-const schedulerService = require('./src/services/schedulerService');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -135,7 +131,6 @@ app.use('/api/guest-course-purchases', guestCoursePurchaseRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/quizzes', quizRoutes);
-app.use('/api/podcasts', podcastRoutes);
 app.use('/api/instructors', instructorRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/series-unlock', adminSeriesUnlockRoutes);
@@ -158,9 +153,6 @@ app.use(errorHandler);
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Detailers University REST API server running on http://0.0.0.0:${PORT}`);
-  
-  // Start the podcast scheduler
-  schedulerService.startScheduler();
 });
 
 module.exports = app;
