@@ -47,5 +47,3 @@ function getSupabaseClient() {
 
 // At the end of supabaseClient.js
 module.exports = getSupabaseClient;
-module.exports.supabase = getSupabaseClient(); // Export initialized instance
-module.exports.getSupabaseClient = getSupabaseClient; // Export function

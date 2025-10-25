@@ -1,10 +1,9 @@
 const express = require('express');
-const { getSupabaseClient } = require('../../utils/supabaseClient');
+const getSupabaseClient = require('../../utils/supabaseClient');
 const courseService = require('../../services/courseService');
 const { authenticateToken } = require('../../middleware/restAuthMiddleware');
 
 const router = express.Router();
-const supabase = getSupabaseClient();
 
 /**
  * POST /api/admin/series-unlock/comprehensive-check
@@ -16,6 +15,7 @@ router.post('/comprehensive-check', authenticateToken, async (req, res) => {
   try {
     console.log('🔧 Admin triggered comprehensive series unlock check');
     
+    const supabase = getSupabaseClient();
     const result = await courseService.checkAndUnlockAllSeriesParts(supabase);
     
     console.log('📊 Comprehensive unlock completed:', result);

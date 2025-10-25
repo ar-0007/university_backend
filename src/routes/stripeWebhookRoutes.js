@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripeService = require('../services/stripeService');
 const guestCoursePurchaseService = require('../services/guestCoursePurchaseService');
-const { getSupabaseClient } = require('../utils/supabaseClient');
+const getSupabaseClient = require('../utils/supabaseClient');
 
 // Stripe webhook endpoint
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
