@@ -1,4 +1,4 @@
-const { getSupabaseClient } = require('../utils/supabaseClient');
+const getSupabaseClient = require('../utils/supabaseClient');
 const guestCoursePurchaseService = require('../services/guestCoursePurchaseService');
 const userService = require('../services/userService');
 const emailService = require('../services/emailService');
