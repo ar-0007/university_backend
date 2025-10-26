@@ -241,8 +241,8 @@ router.get('/:id', authenticateToken, [
 // Fix line 240 - Change 'admin' to 'ADMIN'
 router.post('/', authenticateToken, requireRole('ADMIN'), [
 body('email').isEmail().normalizeEmail(),
-body('first_name').isLength({ min: 1 }).trim(),  // Changed from firstName
-body('last_name').isLength({ min: 1 }).trim(),   // Changed from lastName
+body('firstName').isLength({ min: 1 }).trim(),
+body('lastName').isLength({ min: 1 }).trim(),
 body('role').isIn(['STUDENT', 'ADMIN'])
 ], validate, userController.createUser);
 
