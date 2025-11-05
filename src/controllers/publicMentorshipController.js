@@ -1,35 +1,37 @@
-const getSupabaseClient = require('../utils/supabaseClient');const mentorshipService = require('../services/mentorshipService');
+const getSupabaseClient = require('../utils/supabaseClient');
+const mentorshipService = require('../services/mentorshipService');
 const emailService = require('../services/emailService');
 const { body, validationResult } = require('express-validator');
 
 /**
  * Get available mentorship slots for a specific instructor
+ * NOTE: This function still requires an instructorId.
  */
 const getAvailableSlots = async (req, res) => {
   try {
     const supabase = getSupabaseClient();
     const { instructorId } = req.params;
-    
-      // Get instructor details to get the user_id
-  const { data: instructor, error: instructorError } = await supabase
-    .from('instructors')
-    .select('user_id')
-    .eq('instructor_id', instructorId)
-    .single();
 
-  if (instructorError || !instructor) {
-    return res.status(404).json({
-      success: false,
-      error: {
-        code: 'INSTRUCTOR_NOT_FOUND',
-        message: 'Instructor not found'
-      }
-    });
-  }
+    // Get instructor details to get the user_id
+    const { data: instructor, error: instructorError } = await supabase
+      .from('instructors')
+      .select('user_id')
+      .eq('instructor_id', instructorId)
+      .single();
 
-  // Get available slots for the instructor
-  const slots = await mentorshipService.getAllMentorshipSlots(supabase, false, instructor.user_id);
-    
+    if (instructorError || !instructor) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'INSTRUCTOR_NOT_FOUND',
+          message: 'Instructor not found'
+        }
+      });
+    }
+
+    // Get available slots for the instructor
+    const slots = await mentorshipService.getAllMentorshipSlots(supabase, false, instructor.user_id);
+
     res.status(200).json({
       success: true,
       data: slots,
@@ -49,6 +51,7 @@ const getAvailableSlots = async (req, res) => {
 
 /**
  * Create a mentorship booking (public route - no authentication required)
+ * V2 - UPDATED: All instructor logic has been removed.
  */
 const createBooking = async (req, res) => {
   try {
@@ -77,10 +80,8 @@ const createBooking = async (req, res) => {
     }
 
     const supabase = getSupabaseClient();
-    // Inside createBooking, set a default instructor ID if none provided
-    const DEFAULT_INSTRUCTOR_ID = '398ffa2e-9a3d-40d6-9f76-8bcca8cd7f72'; // TODO: replace with your real instructor UUID
-
-    // Prepare or create user account based on customerEmail
+    
+    // --- Prepare or create user account based on customerEmail ---
     const { customerEmail, customerName } = req.body;
     let userData = null;
     const { data: existingUser, error: userCheckError } = await supabase
@@ -112,6 +113,7 @@ const createBooking = async (req, res) => {
       }
       userData = existingUser;
     } else {
+      // Create a guest user
       const guestUser = {
         first_name: customerName.split(' ')[0] || customerName,
         last_name: customerName.split(' ').slice(1).join(' ') || '',
@@ -136,153 +138,113 @@ const createBooking = async (req, res) => {
           }
         });
       }
-
       userData = newUser;
     }
-        const {
-          instructorId,
-          customerPhone,
-          preferredDate,
-          preferredTime,
-          message,
-          preferredTopics
-        } = req.body;
     
-        const effectiveInstructorId = instructorId && instructorId.trim() !== '' ? instructorId : DEFAULT_INSTRUCTOR_ID;
+    // --- All Instructor Logic is Removed ---
+    // We get the remaining data from the request
+    const {
+      customerPhone,
+      preferredDate,
+      preferredTime,
+      // 'instructorId' is no longer needed here
+    } = req.body;
+
+    // --- Create a mentorship slot (without an instructor) ---
+    const startTime = new Date(`${preferredDate}T${preferredTime}`);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour session
     
-        // Use effectiveInstructorId throughout the rest of the function where instructorId was used
-        // Example: fetch instructor details, create slot, create booking
-        const { data: instructor, error: instructorError } = await supabase
-          .from('instructors')
-          .select('user_id, hourly_rate, email, first_name, last_name')
-          .eq('instructor_id', effectiveInstructorId)
-          .single();
-    
-        if (instructorError || !instructor) {
-          console.error('Error fetching instructor:', instructorError);
-          return res.status(404).json({
-            success: false,
-            error: {
-              code: 'INSTRUCTOR_NOT_FOUND',
-              message: 'Instructor not found'
-            }
-          });
+    // !! IMPORTANT: Set a default price since there is no instructor.
+    // You can change this '0' to any default price you want.
+    const DEFAULT_PRICE = 0; 
+
+    const slotInput = {
+      mentorUserId: null, // <-- Set to null because instructor is removed
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      price: DEFAULT_PRICE 
+    };
+
+    let slot;
+    try {
+      slot = await mentorshipService.createMentorshipSlot(supabase, slotInput);
+    } catch (slotError) {
+      console.error('Error creating mentorship slot:', slotError);
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'SLOT_CREATION_ERROR',
+          message: 'Failed to create mentorship slot',
+          details: slotError.message
         }
-    
-        // Check if instructor has a valid user_id
-        if (!instructor.user_id) {
-          console.error('Instructor missing user_id:', instructor);
-          return res.status(400).json({
-            success: false,
-            error: {
-              code: 'INSTRUCTOR_INVALID',
-              message: 'Instructor account is not properly configured (missing user_id)'
-            }
-          });
+      });
+    }
+
+    // --- Create the booking ---
+    let booking;
+    try {
+      booking = await mentorshipService.createMentorshipBooking(
+        supabase,
+        slot.slot_id,
+        userData.user_id
+      );
+    } catch (bookingError) {
+      console.error('Error creating mentorship booking:', bookingError);
+      // Clean up the slot if booking fails
+      try {
+        await supabase.from('mentorship_slots').delete().eq('slot_id', slot.slot_id);
+      } catch (cleanupError) {
+        console.error('Error cleaning up slot after booking failure:', cleanupError);
+      }
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'BOOKING_CREATION_ERROR',
+          message: 'Failed to create mentorship booking',
+          details: bookingError.message
         }
-    
-        // Create a mentorship slot for the requested time
-        const startTime = new Date(`${preferredDate}T${preferredTime}`);
-        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour session
-    
-        const slotInput = {
-          mentorUserId: instructor.user_id,
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
-          price: instructor.hourly_rate || 0
-        };
-    
-        let slot;
-        try {
-          slot = await mentorshipService.createMentorshipSlot(supabase, slotInput);
-        } catch (slotError) {
-          console.error('Error creating mentorship slot:', slotError);
-          return res.status(500).json({
-            success: false,
-            error: {
-              code: 'SLOT_CREATION_ERROR',
-              message: 'Failed to create mentorship slot',
-              details: slotError.message
-            }
-          });
-        }
-    
-        // Create the booking
-        let booking;
-        try {
-          booking = await mentorshipService.createMentorshipBooking(
-            supabase, 
-            slot.slot_id, 
-            userData.user_id
-          );
-        } catch (bookingError) {
-          console.error('Error creating mentorship booking:', bookingError);
-          // Try to clean up the slot if booking fails
-          try {
-            await supabase.from('mentorship_slots').delete().eq('slot_id', slot.slot_id);
-          } catch (cleanupError) {
-            console.error('Error cleaning up slot after booking failure:', cleanupError);
-          }
-          return res.status(500).json({
-            success: false,
-            error: {
-              code: 'BOOKING_CREATION_ERROR',
-              message: 'Failed to create mentorship booking',
-              details: bookingError.message
-            }
-          });
-        }
-    
-        // Generate meeting link (you can integrate with Zoom, Google Meet, etc.)
-        const meetingLink = `https://meet.google.com/${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 4)}`;
-    
-        // Send confirmation email to customer
-        try {
-          await emailService.sendMentorshipConfirmation({
-            customerName,
-            customerEmail,
-            instructorName: `${instructor.first_name} ${instructor.last_name}`,
-            scheduledDate: preferredDate,
-            scheduledTime: preferredTime,
-            meetingLink,
-            price: instructor.hourly_rate
-          });
-        } catch (emailError) {
-          console.error('Error sending customer confirmation email:', emailError);
-          // Don't fail the booking if email fails
-        }
-    
-        // Send notification email to instructor
-        try {
-          await emailService.sendInstructorNotification(instructor.email, {
-            customerName,
-            customerEmail,
-            scheduledDate: preferredDate,
-            scheduledTime: preferredTime,
-            meetingLink
-          });
-        } catch (emailError) {
-          console.error('Error sending instructor notification email:', emailError);
-          // Don't fail the booking if email fails
-        }
-    
-        res.status(201).json({
-          success: true,
-          data: {
-            booking_id: booking.booking_id,
-            slot_id: booking.slot_id,
-            user_id: booking.user_id,
-            payment_status: booking.payment_status,
-            scheduled_date: preferredDate,
-            scheduled_time: preferredTime,
-            instructor_id: effectiveInstructorId,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_phone: customerPhone,
-            meeting_link: meetingLink
-          },
-          message: 'Mentorship booking created successfully. Check your email for meeting details.'
-        });
+      });
+    }
+
+    // --- Generate meeting link ---
+    const meetingLink = `https://meet.google.com/${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 4)}`;
+
+    // --- Send confirmation email to customer (no instructor name) ---
+    try {
+      await emailService.sendMentorshipConfirmation({
+        customerName,
+        customerEmail,
+        instructorName: "Detailer University Team", // <-- Changed to generic name
+        scheduledDate: preferredDate,
+        scheduledTime: preferredTime,
+        meetingLink,
+        price: DEFAULT_PRICE
+      });
+    } catch (emailError) {
+      console.error('Error sending customer confirmation email:', emailError);
+      // Don't fail the booking if email fails
+    }
+
+    // --- Instructor notification email is removed ---
+
+    // --- Send 201 Success Response ---
+    res.status(201).json({
+      success: true,
+      data: {
+        booking_id: booking.booking_id,
+        slot_id: booking.slot_id,
+        user_id: booking.user_id,
+        payment_status: booking.payment_status,
+        scheduled_date: preferredDate,
+        scheduled_time: preferredTime,
+        instructor_id: null, // <-- Set to null
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        meeting_link: meetingLink
+      },
+      message: 'Mentorship booking created successfully. Check your email for meeting details.'
+    });
   } catch (error) {
     console.error('Error creating mentorship booking:', error);
     res.status(500).json({
@@ -295,231 +257,232 @@ const createBooking = async (req, res) => {
   }
 };
 
-    /**
-     * Get booking details by ID
-     */
-    const getBookingById = async (req, res) => {
-      try {
-        const supabase = getSupabaseClient();
-        const { bookingId } = req.params;
-        
-        const booking = await mentorshipService.getMentorshipBookingById(supabase, bookingId);
-        
-        if (!booking) {
-          return res.status(404).json({
-            success: false,
-            error: {
-              code: 'NOT_FOUND',
-              message: 'Booking not found'
-            }
-          });
+/**
+ * Get booking details by ID
+ */
+const getBookingById = async (req, res) => {
+  try {
+    const supabase = getSupabaseClient();
+    const { bookingId } = req.params;
+
+    const booking = await mentorshipService.getMentorshipBookingById(supabase, bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Booking not found'
         }
-        
-        res.status(200).json({
-          success: true,
-          data: booking,
-          message: 'Booking retrieved successfully'
-        });
-      } catch (error) {
-        console.error('Error fetching booking:', error);
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch booking'
-          }
-        });
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: booking,
+      message: 'Booking retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch booking'
       }
-    };
+    });
+  }
+};
 
-    /**
-     * Update booking payment status
-     */
-    const updatePaymentStatus = async (req, res) => {
-      try {
-        const supabase = getSupabaseClient();
-        const { bookingId } = req.params;
-        const { paymentStatus, transactionId, paymentMethod } = req.body;
-        
-        const booking = await mentorshipService.updateMentorshipBooking(
-          supabase, 
-          bookingId, 
-          {
-            paymentStatus,
-            transactionId,
-            paymentMethod
-          }
-        );
-        
-        res.status(200).json({
-          success: true,
-          data: booking,
-          message: 'Payment status updated successfully'
-        });
-      } catch (error) {
-        console.error('Error updating payment status:', error);
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to update payment status'
-          }
-        });
+/**
+ * Update booking payment status
+ */
+const updatePaymentStatus = async (req, res) => {
+  try {
+    const supabase = getSupabaseClient();
+    const { bookingId } = req.params;
+    const { paymentStatus, transactionId, paymentMethod } = req.body;
+
+    const booking = await mentorshipService.updateMentorshipBooking(
+      supabase,
+      bookingId,
+      {
+        paymentStatus,
+        transactionId,
+        paymentMethod
       }
-    };
+    );
 
-    /**
-     * Get upcoming mentorship sessions (public endpoint)
-     */
-    const getUpcomingMentorshipSessions = async (req, res) => {
-      try {
-        const supabase = getSupabaseClient();
-        const limit = parseInt(req.query.limit) || 10;
-        
-        // Get upcoming mentorship bookings with mentor details
-        const { data: mentorshipBookings, error: mentorshipError } = await supabase
-          .from('mentorship_bookings')
-          .select(`
-            booking_id,
-            user_id,
-            slot_id,
-            payment_status,
-            zoom_link,
-            booked_at,
-            created_at,
-            users!inner(user_id, first_name, last_name, email),
-            mentorship_slots!inner(
-              slot_id,
-              start_time,
-              end_time,
-              mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email)
-            )
-          `)
-          .gte('mentorship_slots.start_time', new Date().toISOString())
-          .eq('payment_status', 'PAID')
-          .order('mentorship_slots(start_time)', { ascending: true })
-          .limit(limit);
+    res.status(200).json({
+      success: true,
+      data: booking,
+      message: 'Payment status updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to update payment status'
+      }
+    });
+  }
+};
 
-        if (mentorshipError) {
-          console.error('Error fetching mentorship bookings:', mentorshipError);
-          return res.status(500).json({
-            success: false,
-            error: {
-              code: 'DATABASE_ERROR',
-              message: 'Failed to fetch mentorship bookings'
-            }
-          });
+/**
+ * Get upcoming mentorship sessions (public endpoint)
+ * NOTE: This function still has instructor logic.
+ */
+const getUpcomingMentorshipSessions = async (req, res) => {
+  try {
+    const supabase = getSupabaseClient();
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Get upcoming mentorship bookings with mentor details
+    const { data: mentorshipBookings, error: mentorshipError } = await supabase
+      .from('mentorship_bookings')
+      .select(`
+        booking_id,
+        user_id,
+        slot_id,
+        payment_status,
+        zoom_link,
+        booked_at,
+        created_at,
+        users!inner(user_id, first_name, last_name, email),
+        mentorship_slots!inner(
+          slot_id,
+          start_time,
+          end_time,
+          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email)
+        )
+      `)
+      .gte('mentorship_slots.start_time', new Date().toISOString())
+      .eq('payment_status', 'PAID')
+      .order('mentorship_slots(start_time)', { ascending: true })
+      .limit(limit);
+
+    if (mentorshipError) {
+      console.error('Error fetching mentorship bookings:', mentorshipError);
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Failed to fetch mentorship bookings'
         }
+      });
+    }
 
-        // Get upcoming guest bookings with instructor details
-        const { data: guestBookings, error: guestError } = await supabase
-          .from('guest_bookings')
-          .select(`
-            guest_booking_id,
-            customer_name,
-            customer_email,
-            instructor_id,
-            preferred_date,
-            preferred_time,
-            payment_status,
-            meeting_link,
-            created_at,
-            instructors!inner(instructor_id, first_name, last_name, email)
-          `)
-          .gte('preferred_date', new Date().toISOString().split('T')[0])
-          .eq('payment_status', 'PAID')
-          .order('preferred_date', { ascending: true })
-          .order('preferred_time', { ascending: true })
-          .limit(limit);
+    // Get upcoming guest bookings with instructor details
+    const { data: guestBookings, error: guestError } = await supabase
+      .from('guest_bookings')
+      .select(`
+        guest_booking_id,
+        customer_name,
+        customer_email,
+        instructor_id,
+        preferred_date,
+        preferred_time,
+        payment_status,
+        meeting_link,
+        created_at,
+        instructors!inner(instructor_id, first_name, last_name, email)
+      `)
+      .gte('preferred_date', new Date().toISOString().split('T')[0])
+      .eq('payment_status', 'PAID')
+      .order('preferred_date', { ascending: true })
+      .order('preferred_time', { ascending: true })
+      .limit(limit);
 
-        if (guestError) {
-          console.error('Error fetching guest bookings:', guestError);
-          return res.status(500).json({
-            success: false,
-            error: {
-              code: 'DATABASE_ERROR',
-              message: 'Failed to fetch guest bookings'
-            }
-          });
+    if (guestError) {
+      console.error('Error fetching guest bookings:', guestError);
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'DATABASE_ERROR',
+          message: 'Failed to fetch guest bookings'
         }
+      });
+    }
 
-        // Format mentorship bookings
-        const formattedMentorshipBookings = (mentorshipBookings || []).map(booking => ({
-          booking_id: booking.booking_id,
-          user_id: booking.user_id,
-          mentor_id: booking.mentorship_slots.mentor.user_id,
-          slot_id: booking.slot_id,
-          date: booking.mentorship_slots.start_time.split('T')[0],
-          time_slot: `${new Date(booking.mentorship_slots.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(booking.mentorship_slots.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
-          status: 'confirmed',
-          payment_status: booking.payment_status,
-          zoom_link: booking.zoom_link,
-          created_at: booking.created_at,
-          user: {
-            user_id: booking.users.user_id,
-            first_name: booking.users.first_name,
-            last_name: booking.users.last_name,
-            email: booking.users.email
-          },
-          mentor: {
-            mentor_id: booking.mentorship_slots.mentor.user_id,
-            first_name: booking.mentorship_slots.mentor.first_name,
-            last__name: booking.mentorship_slots.mentor.last_name,
-            email: booking.mentorship_slots.mentor.email
-          },
-          type: 'mentorship'
-        }));
+    // Format mentorship bookings
+    const formattedMentorshipBookings = (mentorshipBookings || []).map(booking => ({
+      booking_id: booking.booking_id,
+      user_id: booking.user_id,
+      mentor_id: booking.mentorship_slots.mentor.user_id,
+      slot_id: booking.slot_id,
+      date: booking.mentorship_slots.start_time.split('T')[0],
+      time_slot: `${new Date(booking.mentorship_slots.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${new Date(booking.mentorship_slots.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
+      status: 'confirmed',
+      payment_status: booking.payment_status,
+      zoom_link: booking.zoom_link,
+      created_at: booking.created_at,
+      user: {
+        user_id: booking.users.user_id,
+        first_name: booking.users.first_name,
+        last_name: booking.users.last_name,
+        email: booking.users.email
+      },
+      mentor: {
+        mentor_id: booking.mentorship_slots.mentor.user_id,
+        first_name: booking.mentorship_slots.mentor.first_name,
+        last__name: booking.mentorship_slots.mentor.last_name,
+        email: booking.mentorship_slots.mentor.email
+      },
+      type: 'mentorship'
+    }));
 
-        // Format guest bookings
-        const formattedGuestBookings = (guestBookings || []).map(booking => ({
-          booking_id: booking.guest_booking_id,
-          instructor_id: booking.instructor_id,
-          date: booking.preferred_date,
-          time_slot: booking.preferred_time,
-          status: 'confirmed',
-          payment_status: booking.payment_status,
-          zoom_link: booking.meeting_link,
-          created_at: booking.created_at,
-          user: {
-            first_name: booking.customer_name?.split(' ')[0] || '',
-            last_name: booking.customer_name?.split(' ').slice(1).join(' ') || '',
-            email: booking.customer_email
-          },
-          mentor: {
-            mentor_id: booking.instructors.instructor_id,
-            first_name: booking.instructors.first_name,
-            last_name: booking.instructors.last_name,
-            email: booking.instructors.email
-          },
-          type: 'guest'
-        }));
+    // Format guest bookings
+    const formattedGuestBookings = (guestBookings || []).map(booking => ({
+      booking_id: booking.guest_booking_id,
+      instructor_id: booking.instructor_id,
+      date: booking.preferred_date,
+      time_slot: booking.preferred_time,
+      status: 'confirmed',
+      payment_status: booking.payment_status,
+      zoom_link: booking.meeting_link,
+      created_at: booking.created_at,
+      user: {
+        first_name: booking.customer_name?.split(' ')[0] || '',
+        last_name: booking.customer_name?.split(' ').slice(1).join(' ') || '',
+        email: booking.customer_email
+      },
+      mentor: {
+        mentor_id: booking.instructors.instructor_id,
+        first_name: booking.instructors.first_name,
+        last_name: booking.instructors.last_name,
+        email: booking.instructors.email
+      },
+      type: 'guest'
+    }));
 
-        // Combine and sort all bookings
-        const allBookings = [...formattedMentorshipBookings, ...formattedGuestBookings]
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, limit);
+    // Combine and sort all bookings
+    const allBookings = [...formattedMentorshipBookings, ...formattedGuestBookings]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, limit);
 
-        res.status(200).json({
-          success: true,
-          data: allBookings,
-          message: 'Upcoming mentorship sessions retrieved successfully'
-        });
-      } catch (error) {
-        console.error('Error fetching upcoming mentorship sessions:', error);
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to fetch upcoming mentorship sessions'
-          }
-        });
+    res.status(200).json({
+      success: true,
+      data: allBookings,
+      message: 'Upcoming mentorship sessions retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching upcoming mentorship sessions:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch upcoming mentorship sessions'
       }
-    };
+    });
+  }
+};
 
-    module.exports = {
-      getAvailableSlots,
-      createBooking,
-      getBookingById,
-      updatePaymentStatus,
-      getUpcomingMentorshipSessions
-    };
+module.exports = {
+  getAvailableSlots,
+  createBooking,
+  getBookingById,
+  updatePaymentStatus,
+  getUpcomingMentorshipSessions
+};
