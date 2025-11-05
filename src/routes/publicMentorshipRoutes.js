@@ -88,8 +88,7 @@ router.get('/slots/:instructorId', getAvailableSlots);
  *         description: Internal server error
  */
 router.post('/bookings', [
-  body('instructorId').notEmpty().withMessage('Instructor ID is required'),
-  body('customerName').notEmpty().withMessage('Customer name is required'),
+  body('instructorId').optional().isString(), // <-- THIS IS THE FIX  body('customerName').notEmpty().withMessage('Customer name is required'),
   body('customerEmail').isEmail().withMessage('Valid email is required'),
   body('customerPhone').optional(),
   body('preferredDate').notEmpty().withMessage('Preferred date is required'),
