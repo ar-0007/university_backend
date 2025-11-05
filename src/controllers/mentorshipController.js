@@ -1,4 +1,4 @@
-const { getSupabaseClient } = require('../utils/supabaseClient');
+const getSupabaseClient = require('../utils/supabaseClient');
 const mentorshipService = require('../services/mentorshipService');
 
 /**
