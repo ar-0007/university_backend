@@ -179,8 +179,7 @@ router.get('/slots', authenticateToken, requireRole(['ADMIN']), getAllSlots);
  */
 router.get('/my-bookings', authenticateToken, async (req, res) => {
   try {
-    const { getSupabaseClient } = require('../utils/supabaseClient');
-    const mentorshipService = require('../services/mentorshipService');
+const getSupabaseClient = require('../utils/supabaseClient');    const mentorshipService = require('../services/mentorshipService');
     
     const supabase = getSupabaseClient();
     const userId = req.user.user_id;

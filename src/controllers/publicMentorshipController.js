@@ -1,5 +1,4 @@
-const { getSupabaseClient } = require('../utils/supabaseClient');
-const mentorshipService = require('../services/mentorshipService');
+const getSupabaseClient = require('../utils/supabaseClient');const mentorshipService = require('../services/mentorshipService');
 const emailService = require('../services/emailService');
 const { body, validationResult } = require('express-validator');
 
