@@ -408,3 +408,24 @@ const courseController = {
   
 module.exports = courseController;
 
+// ... at the end of your courseController.js file ...
+
+// TEMPORARY FUNCTION TO STOP THE CRASH
+const getCourseStats = async (req, res) => {
+  try {
+    // You can add your database logic here later
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        totalCourses: 0,
+        totalEnrollments: 0 
+      } 
+    });
+  } catch (error) {
+    console.error('Error fetching course stats:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: { code: 'INTERNAL_SERVER_ERROR', message: 'Failed to fetch course stats' } 
+    });
+  }
+};
