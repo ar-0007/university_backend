@@ -79,7 +79,7 @@ const createBooking = async (req, res) => {
 
     const supabase = getSupabaseClient();
     // Inside createBooking, set a default instructor ID if none provided
-    const DEFAULT_INSTRUCTOR_ID = '3d8e8e51-499d-48a0-882b-8bb1692c7c57'; // TODO: replace with your real instructor UUID
+    const DEFAULT_INSTRUCTOR_ID = '398ffa2e-9a3d-40d6-9f76-8bcca8cd7f72'; // TODO: replace with your real instructor UUID
 
     // Prepare or create user account based on customerEmail
     const { customerEmail, customerName } = req.body;
