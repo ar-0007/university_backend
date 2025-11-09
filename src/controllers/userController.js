@@ -48,9 +48,18 @@ const userController = {
     try {
       const user = await userService.getUserById(req.supabase, req.user.user_id);
       
+      // Fetch approved courses for the authenticated user so the app can display them
+      const approvedCourses = await enrollmentService.getApprovedCoursesForUser(
+        req.supabase,
+        req.user.user_id
+      );
+      
       res.status(200).json({
         success: true,
-        data: user,
+        data: { 
+          ...user,
+          approvedCourses
+        },
         message: 'Current user retrieved successfully'
       });
     } catch (error) {
