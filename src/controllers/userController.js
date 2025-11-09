@@ -1,6 +1,8 @@
 // src/controllers/userController.js
 const userService = require('../services/userService');
 const authService = require('../services/authService');
+const courseService = require('../services/courseService');
+const enrollmentService = require('../services/enrollmentService');
 
 const userController = {
   // GET /api/users
@@ -99,6 +101,8 @@ const userController = {
     try {
       const { email, firstName, lastName, role } = req.body;
 
+
+      // 1) Create user and send credentials
       const newUser = await authService.createUserAndSendCredentials(
         req.supabase,
         email,
@@ -107,10 +111,66 @@ const userController = {
         role
       );
 
+      // 2) Fetch all published courses
+      const courses = await courseService.getAllCourses(req.supabase, true);
+
+      let grantedCount = 0;
+      let alreadyApprovedCount = 0;
+      const errors = [];
+
+      // 3) Ensure approved enrollment for each course
+      for (const course of courses) {
+        try {
+          // Check existing enrollment
+          const { data: existing, error: existingError } = await req.supabase
+            .from('enrollments')
+            .select('enrollment_id, status')
+            .eq('user_id', newUser.id)
+            .eq('course_id', course.course_id);
+
+          if (existingError) throw existingError;
+
+          let enrollmentId = null;
+          let status = null;
+
+          if (Array.isArray(existing) && existing.length > 0) {
+            enrollmentId = existing[0].enrollment_id;
+            status = existing[0].status;
+          }
+
+          // Create enrollment if missing
+          if (!enrollmentId) {
+            const created = await enrollmentService.createEnrollment(req.supabase, newUser.id, course.course_id);
+            enrollmentId = created.enrollment_id;
+            status = created.status;
+          }
+
+          // Approve to unlock chapters
+          if (status !== 'approved') {
+            await enrollmentService.updateEnrollmentStatus(req.supabase, enrollmentId, 'approved');
+            grantedCount++;
+          } else {
+            alreadyApprovedCount++;
+          }
+        } catch (e) {
+          errors.push({ courseId: course.course_id, message: e.message });
+        }
+      }
+
+      // 4) Respond with grant summary
       res.status(201).json({
         success: true,
-        data: newUser,
-        message: 'User created successfully'
+        data: {
+          user: newUser,
+          grantSummary: {
+            totalCourses: courses.length,
+            grantedCount,
+            alreadyApprovedCount,
+            failedCount: errors.length,
+            errors,
+          },
+        },
+        message: 'User created successfully and granted access to all published courses'
       });
     } catch (error) {
       next(error);
