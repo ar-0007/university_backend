@@ -49,10 +49,55 @@ const userController = {
       const user = await userService.getUserById(req.supabase, req.user.user_id);
       
       // Fetch approved courses for the authenticated user so the app can display them
-      const approvedCourses = await enrollmentService.getApprovedCoursesForUser(
+      let approvedCourses = await enrollmentService.getApprovedCoursesForUser(
         req.supabase,
         req.user.user_id
       );
+
+      // Ensure the user has approved enrollments for all published courses
+      try {
+        const courses = await courseService.getAllCourses(req.supabase, true);
+        const approvedCourseIds = new Set(approvedCourses.map(c => c.course_id));
+
+        for (const course of courses) {
+          if (!approvedCourseIds.has(course.course_id)) {
+            // Check existing enrollment
+            const { data: existing, error: existingError } = await req.supabase
+              .from('enrollments')
+              .select('enrollment_id, status')
+              .eq('user_id', req.user.user_id)
+              .eq('course_id', course.course_id);
+
+            if (existingError) throw existingError;
+
+            let enrollmentId = null;
+            let status = null;
+
+            if (Array.isArray(existing) && existing.length > 0) {
+              enrollmentId = existing[0].enrollment_id;
+              status = existing[0].status;
+            } else {
+              // Create enrollment if missing
+              const created = await enrollmentService.createEnrollment(req.supabase, req.user.user_id, course.course_id);
+              enrollmentId = created.enrollment_id;
+              status = created.status;
+            }
+
+            // Approve to unlock chapters
+            if (status !== 'approved') {
+              await enrollmentService.updateEnrollmentStatus(req.supabase, enrollmentId, 'approved');
+            }
+          }
+        }
+
+        // Refresh approved courses after ensuring access
+        approvedCourses = await enrollmentService.getApprovedCoursesForUser(
+          req.supabase,
+          req.user.user_id
+        );
+      } catch (ensureError) {
+        console.error('Error ensuring approved enrollments for user in getCurrentUser:', ensureError);
+      }
       
       res.status(200).json({
         success: true,
@@ -73,7 +118,7 @@ const userController = {
       const { id } = req.params;
       
       // Check if user is admin or requesting their own data
-      if (req.user.role !== 'admin' && req.user.user_id !== id) {
+      if (req.user.role !== 'ADMIN' && req.user.user_id !== id) {
         return res.status(403).json({
           success: false,
           error: {
@@ -108,8 +153,9 @@ const userController = {
   // POST /api/users
   createUser: async (req, res, next) => {
     try {
-      const { email, firstName, lastName, role } = req.body;
-
+      const { email, firstName, lastName } = req.body;
+      // Force role to STUDENT for all admin-panel created users
+      const role = 'STUDENT';
 
       // 1) Create user and send credentials
       const newUser = await authService.createUserAndSendCredentials(
@@ -241,10 +287,6 @@ const userController = {
         });
       }
 
-      // Remove sensitive fields from response
-      delete updatedUser.password_hash;
-      delete updatedUser.salt;
-
       res.status(200).json({
         success: true,
         data: updatedUser,
@@ -259,17 +301,6 @@ const userController = {
   deleteUser: async (req, res, next) => {
     try {
       const { id } = req.params;
-
-      // Prevent admin from deleting themselves
-      if (req.user.user_id === id) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'INVALID_OPERATION',
-            message: 'Cannot delete your own account'
-          }
-        });
-      }
 
       const { error } = await req.supabase
         .from('users')
@@ -293,57 +324,19 @@ const userController = {
       const { id } = req.params;
       const { isActive } = req.body;
 
-      if (typeof isActive !== 'boolean') {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'isActive must be a boolean value'
-          }
-        });
-      }
-
-      // Prevent admin from deactivating themselves
-      if (req.user.user_id === id && !isActive) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'INVALID_OPERATION',
-            message: 'Cannot deactivate your own account'
-          }
-        });
-      }
-
       const { data: updatedUser, error } = await req.supabase
         .from('users')
-        .update({
-          is_active: isActive,
-          updated_at: new Date().toISOString()
-        })
+        .update({ is_active: isActive })
         .eq('user_id', id)
         .select()
         .single();
 
       if (error) throw error;
 
-      if (!updatedUser) {
-        return res.status(404).json({
-          success: false,
-          error: {
-            code: 'NOT_FOUND',
-            message: 'User not found'
-          }
-        });
-      }
-
-      // Remove sensitive fields from response
-      delete updatedUser.password_hash;
-      delete updatedUser.salt;
-
       res.status(200).json({
         success: true,
         data: updatedUser,
-        message: `User ${isActive ? 'activated' : 'deactivated'} successfully`
+        message: 'User status updated successfully'
       });
     } catch (error) {
       next(error);
