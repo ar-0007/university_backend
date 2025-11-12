@@ -178,7 +178,7 @@ const enrollmentService = {
       const { data, error } = await supabase
         .from('enrollments')
         .select(`
-          course_id,
+          *,
           courses!inner ( 
             course_id, 
             title, 
