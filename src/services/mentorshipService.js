@@ -261,7 +261,13 @@ const mentorshipService = {
       let query = supabase
         .from('mentorship_bookings')
         .select(`
-          *,
+          booking_id,
+          user_id,
+          slot_id,
+          payment_status,
+          booked_at,
+          created_at,
+          meeting_link: zoom_link,
           mentorship_slots (
             slot_id, start_time, end_time, price, mentor_user_id, is_booked,
             mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role)
@@ -312,7 +318,13 @@ const mentorshipService = {
       const { data, error } = await supabase
         .from('mentorship_bookings')
         .select(`
-          *,
+          booking_id,
+          user_id,
+          slot_id,
+          payment_status,
+          booked_at,
+          created_at,
+          meeting_link: zoom_link,
           mentorship_slots (
             slot_id, start_time, end_time, price, mentor_user_id, is_booked,
             mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role)
