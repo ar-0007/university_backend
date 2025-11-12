@@ -49,106 +49,10 @@ const userController = {
       const user = await userService.getUserById(req.supabase, req.user.user_id);
       
       // Fetch approved courses for the authenticated user so the app can display them
-      let approvedCourses = await enrollmentService.getApprovedCoursesForUser(
+      const approvedCourses = await enrollmentService.getApprovedCoursesForUser(
         req.supabase,
         req.user.user_id
       );
-
-      // Ensure the user has approved enrollments for all published courses
-      try {
-        const courses = await courseService.getAllCourses(req.supabase, true);
-        const approvedCourseIds = new Set(approvedCourses.map(c => c.course_id));
-
-        for (const course of courses) {
-          if (!approvedCourseIds.has(course.course_id)) {
-            // Check existing enrollment
-            const { data: existing, error: existingError } = await req.supabase
-              .from('enrollments')
-              .select('enrollment_id, status')
-              .eq('user_id', req.user.user_id)
-              .eq('course_id', course.course_id);
-
-            if (existingError) throw existingError;
-
-            let enrollmentId = null;
-            let status = null;
-
-            if (Array.isArray(existing) && existing.length > 0) {
-              enrollmentId = existing[0].enrollment_id;
-              status = existing[0].status;
-            } else {
-              // Create enrollment if missing with valid status/payment_status per DB constraints
-              const { data: created, error: createError } = await req.supabase
-                .from('enrollments')
-                .insert({
-                  user_id: req.user.user_id,
-                  course_id: course.course_id,
-                  status: 'PENDING',
-                  payment_status: 'pending',
-                  requested_at: new Date().toISOString()
-                })
-                .select('enrollment_id, status')
-                .single();
-
-              if (createError) throw createError;
-
-              enrollmentId = created.enrollment_id;
-              status = created.status;
-            }
-
-            // Approve to unlock chapters (use correct casing)
-            if (status !== 'APPROVED') {
-              const { error: updateError } = await req.supabase
-                .from('enrollments')
-                .update({
-                  status: 'APPROVED',
-                  approved_at: new Date().toISOString()
-                })
-                .eq('enrollment_id', enrollmentId);
-
-              if (updateError) throw updateError;
-            }
-          }
-        }
-
-        // Refresh approved courses after ensuring access (use uppercase status)
-        const { data: approvedEnrollments, error: approvedError } = await req.supabase
-          .from('enrollments')
-          .select(`
-            course_id,
-            courses (
-              course_id,
-              title,
-              description,
-              thumbnail_url,
-              is_published,
-              price,
-              level,
-              duration_hours,
-              instructor:instructor_id(
-                instructor_id,
-                first_name,
-                last_name,
-                email,
-                bio,
-                profile_image_url
-              ),
-              categories:category_id(
-                name,
-                slug,
-                description
-              )
-            )
-          `)
-          .eq('user_id', req.user.user_id)
-          .eq('status', 'APPROVED');
-
-        if (approvedError) throw approvedError;
-
-        approvedCourses = (approvedEnrollments || []).map(e => e.courses);
-      } catch (ensureError) {
-        console.error('Error ensuring approved enrollments for user in getCurrentUser:', ensureError);
-      }
       
       res.status(200).json({
         success: true,
@@ -208,7 +112,7 @@ const userController = {
       // Force role to STUDENT for all admin-panel created users
       const role = 'STUDENT';
 
-      // 1) Create user and send credentials
+      // Create user and send credentials
       const newUser = await authService.createUserAndSendCredentials(
         req.supabase,
         email,
@@ -216,89 +120,10 @@ const userController = {
         lastName,
         role
       );
-
-      // 2) Fetch all published courses
-      const courses = await courseService.getAllCourses(req.supabase, true);
-
-      let grantedCount = 0;
-      let alreadyApprovedCount = 0;
-      const errors = [];
-
-      // 3) Ensure approved enrollment for each course
-      for (const course of courses) {
-        try {
-          // Check existing enrollment
-          const { data: existing, error: existingError } = await req.supabase
-            .from('enrollments')
-            .select('enrollment_id, status')
-            .eq('user_id', newUser.id)
-            .eq('course_id', course.course_id);
-
-          if (existingError) throw existingError;
-
-          let enrollmentId = null;
-          let status = null;
-
-          if (Array.isArray(existing) && existing.length > 0) {
-            enrollmentId = existing[0].enrollment_id;
-            status = existing[0].status;
-          }
-
-          // Create enrollment if missing with valid status/payment_status per DB constraints
-          if (!enrollmentId) {
-            const { data: created, error: createError } = await req.supabase
-              .from('enrollments')
-              .insert({
-                user_id: newUser.id,
-                course_id: course.course_id,
-                status: 'PENDING',
-                payment_status: 'pending',
-                requested_at: new Date().toISOString()
-              })
-              .select('enrollment_id, status')
-              .single();
-
-            if (createError) throw createError;
-
-            enrollmentId = created.enrollment_id;
-            status = created.status;
-          }
-
-          // Approve to unlock chapters (use correct casing)
-          if (status !== 'APPROVED') {
-            const { error: updateError } = await req.supabase
-              .from('enrollments')
-              .update({
-                status: 'APPROVED',
-                approved_at: new Date().toISOString()
-              })
-              .eq('enrollment_id', enrollmentId);
-
-            if (updateError) throw updateError;
-
-            grantedCount++;
-          } else {
-            alreadyApprovedCount++;
-          }
-        } catch (e) {
-          errors.push({ courseId: course.course_id, message: e.message });
-        }
-      }
-
-      // 4) Respond with grant summary
       res.status(201).json({
         success: true,
-        data: {
-          user: newUser,
-          grantSummary: {
-            totalCourses: courses.length,
-            grantedCount,
-            alreadyApprovedCount,
-            failedCount: errors.length,
-            errors,
-          },
-        },
-        message: 'User created successfully and granted access to all published courses'
+        data: newUser,
+        message: 'User created successfully'
       });
     } catch (error) {
       next(error);
