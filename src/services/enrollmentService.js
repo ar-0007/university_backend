@@ -179,41 +179,42 @@ const enrollmentService = {
         .from('enrollments')
         .select(`
           *,
-          courses!inner ( 
-            course_id, 
-            title, 
-            description, 
-            thumbnail_url, 
-            intro_video_url,
-            video_series,
-            is_published,
+          course:courses(
+            course_id,
+            title,
+            description,
+            thumbnail_url,
             price,
-            level,
             duration_hours,
-            instructor:instructor_id(
+            level,
+            video_series,
+            video_part,
+            intro_video_url,
+            created_at,
+            instructor:instructors(
               instructor_id,
               first_name,
               last_name,
-              email,
-              bio,
-              profile_image_url
-            ),
-            categories:category_id(
-              name,
-              slug,
-              description
+              email
             )
           )
         `)
         .eq('user_id', userId)
-        .eq('status', 'APPROVED');
+        .eq('status', 'APPROVED')
+        .order('created_at', { ascending: false });
   
       if (error) {
         console.error('Error fetching approved courses for user:', error);
         throw new Error(`Failed to fetch user's approved courses: ${error.message}`);
       }
-      // Extract the course objects from the nested structure
-      return data.map(enrollment => enrollment.courses);
+      
+      // Return only the course data with enrollment info
+      return data.map(enrollment => ({
+        ...enrollment.course,
+        enrollment_id: enrollment.enrollment_id,
+        enrolled_at: enrollment.created_at,
+        is_enrolled: true
+      }));
     } catch (error) {
       console.error('Error in getApprovedCoursesForUser service:', error);
       throw error;
