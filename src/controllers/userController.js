@@ -77,24 +77,75 @@ const userController = {
               enrollmentId = existing[0].enrollment_id;
               status = existing[0].status;
             } else {
-              // Create enrollment if missing
-              const created = await enrollmentService.createEnrollment(req.supabase, req.user.user_id, course.course_id);
+              // Create enrollment if missing with valid status/payment_status per DB constraints
+              const { data: created, error: createError } = await req.supabase
+                .from('enrollments')
+                .insert({
+                  user_id: req.user.user_id,
+                  course_id: course.course_id,
+                  status: 'PENDING',
+                  payment_status: 'pending',
+                  requested_at: new Date().toISOString()
+                })
+                .select('enrollment_id, status')
+                .single();
+
+              if (createError) throw createError;
+
               enrollmentId = created.enrollment_id;
               status = created.status;
             }
 
-            // Approve to unlock chapters
-            if (status !== 'approved') {
-              await enrollmentService.updateEnrollmentStatus(req.supabase, enrollmentId, 'approved');
+            // Approve to unlock chapters (use correct casing)
+            if (status !== 'APPROVED') {
+              const { error: updateError } = await req.supabase
+                .from('enrollments')
+                .update({
+                  status: 'APPROVED',
+                  approved_at: new Date().toISOString()
+                })
+                .eq('enrollment_id', enrollmentId);
+
+              if (updateError) throw updateError;
             }
           }
         }
 
-        // Refresh approved courses after ensuring access
-        approvedCourses = await enrollmentService.getApprovedCoursesForUser(
-          req.supabase,
-          req.user.user_id
-        );
+        // Refresh approved courses after ensuring access (use uppercase status)
+        const { data: approvedEnrollments, error: approvedError } = await req.supabase
+          .from('enrollments')
+          .select(`
+            course_id,
+            courses (
+              course_id,
+              title,
+              description,
+              thumbnail_url,
+              is_published,
+              price,
+              level,
+              duration_hours,
+              instructor:instructor_id(
+                instructor_id,
+                first_name,
+                last_name,
+                email,
+                bio,
+                profile_image_url
+              ),
+              categories:category_id(
+                name,
+                slug,
+                description
+              )
+            )
+          `)
+          .eq('user_id', req.user.user_id)
+          .eq('status', 'APPROVED');
+
+        if (approvedError) throw approvedError;
+
+        approvedCourses = (approvedEnrollments || []).map(e => e.courses);
       } catch (ensureError) {
         console.error('Error ensuring approved enrollments for user in getCurrentUser:', ensureError);
       }
@@ -193,16 +244,38 @@ const userController = {
             status = existing[0].status;
           }
 
-          // Create enrollment if missing
+          // Create enrollment if missing with valid status/payment_status per DB constraints
           if (!enrollmentId) {
-            const created = await enrollmentService.createEnrollment(req.supabase, newUser.id, course.course_id);
+            const { data: created, error: createError } = await req.supabase
+              .from('enrollments')
+              .insert({
+                user_id: newUser.id,
+                course_id: course.course_id,
+                status: 'PENDING',
+                payment_status: 'pending',
+                requested_at: new Date().toISOString()
+              })
+              .select('enrollment_id, status')
+              .single();
+
+            if (createError) throw createError;
+
             enrollmentId = created.enrollment_id;
             status = created.status;
           }
 
-          // Approve to unlock chapters
-          if (status !== 'approved') {
-            await enrollmentService.updateEnrollmentStatus(req.supabase, enrollmentId, 'approved');
+          // Approve to unlock chapters (use correct casing)
+          if (status !== 'APPROVED') {
+            const { error: updateError } = await req.supabase
+              .from('enrollments')
+              .update({
+                status: 'APPROVED',
+                approved_at: new Date().toISOString()
+              })
+              .eq('enrollment_id', enrollmentId);
+
+            if (updateError) throw updateError;
+
             grantedCount++;
           } else {
             alreadyApprovedCount++;

@@ -19,7 +19,8 @@ const enrollmentService = {
           {
             user_id: userId,
             course_id: courseId,
-            status: 'pending', // Default status on creation
+            status: 'PENDING', // Match DB constraint casing
+            payment_status: 'pending',
           },
         ])
         .select()
@@ -114,8 +115,13 @@ const enrollmentService = {
    */
   updateEnrollmentStatus: async (supabase, enrollmentId, newStatus) => {
     try {
-      const updateData = { status: newStatus };
-      if (newStatus === 'approved') {
+      const normalized = (newStatus || '').toUpperCase();
+      if (!['APPROVED', 'REJECTED', 'PENDING'].includes(normalized)) {
+        throw new Error(`Invalid enrollment status: ${newStatus}`);
+      }
+
+      const updateData = { status: normalized };
+      if (normalized === 'APPROVED') {
         updateData.approved_at = new Date().toISOString();
       } else {
         updateData.approved_at = null; // Clear if status is changed from approved
@@ -198,7 +204,7 @@ const enrollmentService = {
           )
         `)
         .eq('user_id', userId)
-        .eq('status', 'approved');
+        .eq('status', 'APPROVED');
   
       if (error) {
         console.error('Error fetching approved courses for user:', error);

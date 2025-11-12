@@ -259,7 +259,8 @@ const confirmPayment = async (req, res) => {
         .insert({
           user_id: userId,
           course_id: payment.course_id,
-          status: 'approved',
+          status: 'APPROVED',
+          payment_status: 'paid',
           requested_at: new Date().toISOString(),
           approved_at: new Date().toISOString()
         });
