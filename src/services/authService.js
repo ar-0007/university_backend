@@ -44,8 +44,8 @@ const authService = {
             email,
             password_hash: hashedPassword,
             salt,
-            first_name: firstName,
-            last_name: lastName,
+            firstName: firstName,
+            lastName: lastName,
             role,
             is_active: true,
           },
@@ -80,8 +80,8 @@ const authService = {
       return {
         id: newUser.user_id,
         email: newUser.email,
-        firstName: newUser.first_name,
-        lastName: newUser.last_name,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         role: newUser.role,
         isActive: newUser.is_active,
         createdAt: newUser.created_at,
@@ -106,7 +106,7 @@ const authService = {
       // 1. Fetch user from our 'public.users' table
       const { data: user, error: fetchError } = await supabase
         .from('users')
-        .select('user_id, email, password_hash, salt, first_name, last_name, role, is_active')
+        .select('user_id, email, password_hash, salt, firstName, lastName, role, is_active')
         .eq('email', email)
         .single();
 
@@ -142,8 +142,8 @@ const authService = {
         user: {
           id: user.user_id,
           email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
           isActive: user.is_active,
         },
