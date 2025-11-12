@@ -184,6 +184,8 @@ const enrollmentService = {
             title, 
             description, 
             thumbnail_url, 
+            intro_video_url,
+            video_series,
             is_published,
             price,
             level,
