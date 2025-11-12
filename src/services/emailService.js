@@ -148,6 +148,86 @@ class EmailService {
   }
 
   /**
+   * Send admin notification for a mentorship booking
+   */
+  async sendAdminMentorshipNotification(adminEmail, bookingData) {
+    try {
+      if (!this.transporter) {
+        console.log('Email service not configured. Skipping admin notification email.');
+        return { messageId: 'email_disabled' };
+      }
+
+      const {
+        customerName,
+        customerEmail,
+        customerPhone,
+        scheduledDate,
+        scheduledTime,
+        meetingLink,
+        price
+      } = bookingData;
+
+      const subject = `New Mentorship Booking - ${scheduledDate} ${scheduledTime}`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>New Mentorship Booking</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #f8f9fa; padding: 20px; text-align: center; border-radius: 8px; }
+            .content { padding: 20px; }
+            .details { background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px 0; }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📩 New Mentorship Booking</h1>
+            </div>
+            <div class="content">
+              <p>A new mentorship booking has been created. Here are the details:</p>
+              <div class="details">
+                <p><strong>Customer Name:</strong> ${customerName}</p>
+                <p><strong>Customer Email:</strong> ${customerEmail}</p>
+                <p><strong>Customer Phone:</strong> ${customerPhone || 'N/A'}</p>
+                <p><strong>Date:</strong> ${scheduledDate}</p>
+                <p><strong>Time:</strong> ${scheduledTime}</p>
+                <p><strong>Duration:</strong> 60 minutes</p>
+                <p><strong>Price:</strong> $${price}</p>
+                <p><strong>Meeting Link:</strong> <a href="${meetingLink}">${meetingLink}</a></p>
+              </div>
+              <p>Please ensure the meeting is scheduled properly and the customer has received all necessary information.</p>
+            </div>
+            <div class="footer">
+              <p>Detailer University Admin Notification</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        to: adminEmail,
+        subject,
+        html: htmlContent
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Admin notification email sent:', info.messageId);
+      return info;
+    } catch (error) {
+      console.error('❌ Failed to send admin notification email:', error.message);
+      return { error: error.message };
+    }
+  }
+
+  /**
    * Send instructor notification email
    */
   async sendInstructorNotification(instructorEmail, bookingData) {
