@@ -179,7 +179,7 @@ const enrollmentService = {
         .from('enrollments')
         .select(`
           course_id,
-          courses ( 
+          courses!inner ( 
             course_id, 
             title, 
             description, 
