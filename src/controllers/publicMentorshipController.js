@@ -220,21 +220,17 @@ const createBooking = async (req, res) => {
         meetingLink,
         price: DEFAULT_PRICE
       });
-      // Notify admin of the new booking
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
-      if (adminEmail) {
-        await emailService.sendAdminMentorshipNotification(adminEmail, {
-          customerName,
-          customerEmail,
-          customerPhone,
-          scheduledDate: preferredDate,
-          scheduledTime: preferredTime,
-          meetingLink,
-          price: DEFAULT_PRICE
-        });
-      } else {
-        console.warn('ADMIN_EMAIL not set; skipping admin notification.');
-      }
+      // Notify admin of the new booking (fixed email)
+      const adminEmail = 'abdullahjunaid233@gmail.com';
+      await emailService.sendAdminMentorshipNotification(adminEmail, {
+        customerName,
+        customerEmail,
+        customerPhone,
+        scheduledDate: preferredDate,
+        scheduledTime: preferredTime,
+        meetingLink,
+        price: DEFAULT_PRICE
+      });
     } catch (emailError) {
       console.error('Error sending customer confirmation email:', emailError);
       // Don't fail the booking if email fails
