@@ -52,8 +52,8 @@ const mentorshipService = {
         .from('mentorship_slots')
         .select(`
           *,
-          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role),
-          bookedByUser:users!mentorship_slots_booked_by_user_id_fkey(user_id, first_name, last_name, email, role)
+          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email, role),
+          bookedByUser:users!mentorship_slots_booked_by_user_id_fkey(user_id, firstName, lastName, email, role)
         `)
         .order('start_time', { ascending: true });
 
@@ -101,8 +101,8 @@ const mentorshipService = {
         .from('mentorship_slots')
         .select(`
           *,
-          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role),
-          bookedByUser:users!mentorship_slots_booked_by_user_id_fkey(user_id, first_name, last_name, email, role)
+          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email, role),
+          bookedByUser:users!mentorship_slots_booked_by_user_id_fkey(user_id, firstName, lastName, email, role)
         `)
         .eq('slot_id', id)
         .single();
@@ -270,9 +270,9 @@ const mentorshipService = {
           meeting_link: zoom_link,
           mentorship_slots (
             slot_id, start_time, end_time, price, mentor_user_id, is_booked,
-            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role)
+            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email, role)
           ),
-          user:users ( user_id, first_name, last_name, email, role )
+          user:users ( user_id, firstName, lastName, email, role )
         `)
         .order('booked_at', { ascending: false });
 
@@ -327,9 +327,9 @@ const mentorshipService = {
           meeting_link: zoom_link,
           mentorship_slots (
             slot_id, start_time, end_time, price, mentor_user_id, is_booked,
-            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email, role)
+            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email, role)
           ),
-          user:users ( user_id, first_name, last_name, email, role )
+          user:users ( user_id, firstName, lastName, email, role )
         `)
         .eq('booking_id', id)
         .single();

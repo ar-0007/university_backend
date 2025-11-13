@@ -35,7 +35,7 @@ const createGuestBooking = async (req, res) => {
     // Get instructor details to get the hourly rate
     const { data: instructor, error: instructorError } = await supabase
       .from('instructors')
-      .select('instructor_id, first_name, last_name, email, hourly_rate')
+      .select('instructor_id, firstName, lastName, email, hourly_rate')
       .eq('instructor_id', instructorId)
       .single();
 
@@ -100,7 +100,7 @@ const createGuestBooking = async (req, res) => {
       data: {
         guest_booking_id: booking.guest_booking_id,
         instructor_id: instructorId,
-        instructor_name: `${instructor.first_name} ${instructor.last_name}`,
+        instructor_name: `${instructor.firstName} ${instructor.lastName}`,
         customer_name: customerName,
         customer_email: customerEmail,
         customer_phone: customerPhone,
@@ -185,7 +185,7 @@ const updatePaymentStatus = async (req, res) => {
         await emailService.sendMentorshipConfirmation({
           customerName: booking.customer_name,
           customerEmail: booking.customer_email,
-          instructorName: booking.instructor ? `${booking.instructor.first_name} ${booking.instructor.last_name}` : 'Your Instructor',
+          instructorName: booking.instructor ? `${booking.instructor.firstName} ${booking.instructor.lastName}` : 'Your Instructor',
           scheduledDate: booking.preferred_date,
           scheduledTime: booking.preferred_time,
           meetingLink: booking.meeting_link,
@@ -280,7 +280,7 @@ const updateBookingStatus = async (req, res) => {
         await emailService.sendMentorshipConfirmation({
           customerName: booking.customer_name,
           customerEmail: booking.customer_email,
-          instructorName: booking.instructor ? `${booking.instructor.first_name} ${booking.instructor.last_name}` : 'Your Instructor',
+          instructorName: booking.instructor ? `${booking.instructor.firstName} ${booking.instructor.lastName}` : 'Your Instructor',
           scheduledDate: booking.preferred_date,
           scheduledTime: booking.preferred_time,
           meetingLink: booking.meeting_link,
@@ -310,7 +310,7 @@ const updateBookingStatus = async (req, res) => {
         await emailService.sendBookingCancellation({
           customerName: booking.customer_name,
           customerEmail: booking.customer_email,
-          instructorName: booking.instructor ? `${booking.instructor.first_name} ${booking.instructor.last_name}` : 'Your Instructor',
+          instructorName: booking.instructor ? `${booking.instructor.firstName} ${booking.instructor.lastName}` : 'Your Instructor',
           scheduledDate: booking.preferred_date,
           scheduledTime: booking.preferred_time,
           price: booking.session_price

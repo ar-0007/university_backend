@@ -358,7 +358,7 @@ const getPaymentHistory = async (req, res) => {
       .select(`
         *,
         courses:course_id(title, description),
-        mentorship_slots:mentorship_slot_id(date, time_slot, mentors:mentor_id(first_name, last_name))
+        mentorship_slots:mentorship_slot_id(date, time_slot, mentors:mentor_id(firstName, lastName))
       `, { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -444,7 +444,7 @@ const getPaymentStats = async (req, res) => {
       .from('payments')
       .select(`
         *,
-        users:user_id(first_name, last_name, email),
+        users:user_id(firstName, lastName, email),
         courses:course_id(title),
         mentorship_slots:mentorship_slot_id(date, time_slot)
       `)
@@ -594,7 +594,7 @@ const createGuestBookingPaymentIntent = async (req, res) => {
             customerEmail: booking.customer_email,
             customerName: booking.customer_name
           },
-          description: `Mentorship session with ${booking.instructor?.first_name} ${booking.instructor?.last_name}`
+          description: `Mentorship session with ${booking.instructor?.firstName} ${booking.instructor?.lastName}`
         });
       } catch (stripeError) {
         console.log('⚠️  Stripe error, falling back to development mode:', stripeError.message);

@@ -13,7 +13,7 @@ const userController = {
 
       let query = req.supabase
         .from('users')
-        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at', { count: 'exact' });
+        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at', { count: 'exact' });
 
       if (role) {
         query = query.eq('role', role);
@@ -127,8 +127,8 @@ const userController = {
               duration_hours,
               instructor:instructor_id(
                 instructor_id,
-                first_name,
-                last_name,
+                firstName,
+                lastName,
                 email,
                 bio,
                 profile_image_url

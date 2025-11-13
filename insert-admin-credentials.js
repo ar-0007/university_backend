@@ -113,10 +113,12 @@ async function insertAdminCredentials() {
           salt: credentials.salt,
           role: credentials.user.role,
           is_active: credentials.user.isActive,
+          firstName: credentials.user.firstName,
+          lastName: credentials.user.lastName,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', existingUser.user_id)
-        .select('user_id, email, first_name, last_name, role, is_active')
+        .select('user_id, email, firstName, lastName, role, is_active')
         .single();
         
       if (updateError) {
@@ -141,12 +143,12 @@ async function insertAdminCredentials() {
           email: credentials.user.email,
           password_hash: credentials.hashedPassword,
           salt: credentials.salt,
-          first_name: credentials.user.firstName,
-          last_name: credentials.user.lastName,
+          firstName: credentials.user.firstName,
+          lastName: credentials.user.lastName,
           role: credentials.user.role,
           is_active: credentials.user.isActive
         })
-        .select('user_id, email, first_name, last_name, role, is_active')
+        .select('user_id, email, firstName, lastName, role, is_active')
         .single();
         
       newUser = result.data;

@@ -271,7 +271,7 @@ const quizService = {
         .from('quiz_attempts')
         .select(`
           *,
-          users ( user_id, first_name, last_name, email )
+          users ( user_id, firstName, lastName, email )
         `)
         .eq('quiz_id', quizId)
         .order('completed_at', { ascending: false });
@@ -363,7 +363,7 @@ const quizService = {
         .select(`
           *,
           quizzes ( quiz_id, title, description ),
-          users ( user_id, first_name, last_name, email )
+          users ( user_id, firstName, lastName, email )
         `)
         .eq('attempt_id', id)
         .single();

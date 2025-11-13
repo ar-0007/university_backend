@@ -704,8 +704,8 @@ class EmailService {
       const {
         email,
         username,
-        first_name,
-        last_name,
+        firstName,
+        lastName,
         plainPassword
       } = userData;
 
@@ -736,7 +736,7 @@ class EmailService {
             </div>
             
             <div class="content">
-              <p>Dear ${first_name} ${last_name},</p>
+              <p>Dear ${firstName} ${lastName},</p>
               
               <p>Thank you for purchasing <strong>${courseTitle}</strong>! Your university account has been created automatically.</p>
               

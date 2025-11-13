@@ -196,8 +196,8 @@ const getSupabaseClient = require('../utils/supabaseClient');    const mentorshi
       scheduled_date: booking.slot?.start_time ? new Date(booking.slot.start_time).toISOString().split('T')[0] : '',
       scheduled_time: booking.slot?.start_time ? new Date(booking.slot.start_time).toTimeString().slice(0, 5) : '',
       instructor_id: booking.slot?.mentor?.instructor_id || '',
-      customer_name: booking.user?.first_name && booking.user?.last_name 
-        ? `${booking.user.first_name} ${booking.user.last_name}` 
+      customer_name: booking.user?.firstName && booking.user?.lastName
+        ? `${booking.user.firstName} ${booking.user.lastName}` 
         : booking.user?.email || 'Unknown',
       customer_email: booking.user?.email || '',
       customer_phone: booking.user?.phone || '',

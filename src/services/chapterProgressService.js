@@ -51,7 +51,7 @@ const chapterProgressService = {
         .from('chapter_progress')
         .select(`
           *,
-          users ( user_id, email, first_name, last_name ),
+          users ( user_id, email, firstName, lastName ),
           chapters ( chapter_id, title, order_index )
         `)
         .eq('user_id', userId)

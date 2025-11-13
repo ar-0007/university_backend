@@ -207,8 +207,8 @@ class SubmissionService {
           updated_at,
           users (
             user_id,
-            first_name,
-            last_name,
+            firstName,
+            lastName,
             email
           )
         `)
@@ -245,8 +245,8 @@ class SubmissionService {
           updated_at,
           users (
             user_id,
-            first_name,
-            last_name,
+            firstName,
+            lastName,
             email
           ),
           assignments (

@@ -10,7 +10,7 @@ const userService = {
     try {
       const { data: user, error } = await supabase
         .from('users')
-        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at')
+        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at')
         .eq('user_id', userId)
         .single();
 
@@ -34,7 +34,7 @@ const userService = {
     try {
       const { data: users, error } = await supabase
         .from('users')
-        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at')
+        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -60,8 +60,8 @@ const userService = {
       const { data: updatedUser, error } = await supabase
         .from('users')
         .update({
-          first_name: updates.firstName,
-          last_name: updates.lastName,
+          firstName: updates.firstName,
+      lastName: updates.lastName,
           updated_at: new Date().toISOString() // Trigger updated_at manually if not using DB trigger
         })
         .eq('user_id', userId)
@@ -155,12 +155,12 @@ const userService = {
                  email: purchaseData.customer_email,
                  password_hash: hashedPassword,
                  salt: salt,
-                 first_name: firstName,
-                 last_name: lastName,
+                 firstName: firstName,
+      lastName: lastName,
                  role: 'STUDENT',
                  is_active: true
                })
-               .select('user_id, email, first_name, last_name, role, is_active')
+               .select('user_id, email, firstName, lastName, role, is_active')
                .single();
 
       if (createError) {
@@ -191,7 +191,7 @@ const userService = {
       // Get existing user
       const { data: existingUser, error: fetchError } = await supabase
         .from('users')
-        .select('user_id, email, first_name, last_name, role, is_active')
+        .select('user_id, email, firstName, lastName, role, is_active')
         .eq('email', email)
         .single();
 
@@ -225,7 +225,7 @@ const userService = {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', existingUser.user_id)
-        .select('user_id, email, first_name, last_name, role, is_active')
+        .select('user_id, email, firstName, lastName, role, is_active')
         .single();
 
       if (updateError) {

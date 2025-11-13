@@ -115,8 +115,8 @@ const createBooking = async (req, res) => {
     } else {
       // Create a guest user
       const guestUser = {
-        first_name: customerName.split(' ')[0] || customerName,
-        last_name: customerName.split(' ').slice(1).join(' ') || '',
+        firstName: customerName.split(' ')[0] || customerName,
+      lastName: customerName.split(' ').slice(1).join(' ') || '',
         email: customerEmail,
         role: 'GUEST',
         is_active: true
@@ -361,12 +361,12 @@ const getUpcomingMentorshipSessions = async (req, res) => {
         zoom_link,
         booked_at,
         created_at,
-        users!inner(user_id, first_name, last_name, email),
+        users!inner(user_id, firstName, lastName, email),
         mentorship_slots!inner(
           slot_id,
           start_time,
           end_time,
-          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email)
+          mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email)
         )
       `)
       .gte('mentorship_slots.start_time', new Date().toISOString())
@@ -398,7 +398,7 @@ const getUpcomingMentorshipSessions = async (req, res) => {
         payment_status,
         meeting_link,
         created_at,
-        instructors!inner(instructor_id, first_name, last_name, email)
+        instructors!inner(instructor_id, firstName, lastName, email)
       `)
       .gte('preferred_date', new Date().toISOString().split('T')[0])
       .eq('payment_status', 'PAID')
@@ -431,14 +431,14 @@ const getUpcomingMentorshipSessions = async (req, res) => {
       created_at: booking.created_at,
       user: {
         user_id: booking.users.user_id,
-        first_name: booking.users.first_name,
-        last_name: booking.users.last_name,
+        firstName: booking.users.firstName,
+      lastName: booking.users.lastName,
         email: booking.users.email
       },
       mentor: {
         mentor_id: booking.mentorship_slots.mentor.user_id,
-        first_name: booking.mentorship_slots.mentor.first_name,
-        last__name: booking.mentorship_slots.mentor.last_name,
+        firstName: booking.mentorship_slots.mentor.firstName,
+      lastName: booking.mentorship_slots.mentor.lastName,
         email: booking.mentorship_slots.mentor.email
       },
       type: 'mentorship'
@@ -455,14 +455,14 @@ const getUpcomingMentorshipSessions = async (req, res) => {
       zoom_link: booking.meeting_link,
       created_at: booking.created_at,
       user: {
-        first_name: booking.customer_name?.split(' ')[0] || '',
-        last_name: booking.customer_name?.split(' ').slice(1).join(' ') || '',
+        firstName: booking.customer_name?.split(' ')[0] || '',
+      lastName: booking.customer_name?.split(' ').slice(1).join(' ') || '',
         email: booking.customer_email
       },
       mentor: {
         mentor_id: booking.instructors.instructor_id,
-        first_name: booking.instructors.first_name,
-        last_name: booking.instructors.last_name,
+        firstName: booking.instructors.firstName,
+      lastName: booking.instructors.lastName,
         email: booking.instructors.email
       },
       type: 'guest'
