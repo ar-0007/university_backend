@@ -13,7 +13,7 @@ const userController = {
 
       let query = req.supabase
         .from('users')
-        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at', { count: 'exact' });
+        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at', { count: 'exact' });
 
       if (role) {
         query = query.eq('role', role);
@@ -127,8 +127,8 @@ const userController = {
               duration_hours,
               instructor:instructor_id(
                 instructor_id,
-                firstName,
-                lastName,
+                first_name,
+                last_name,
                 email,
                 bio,
                 profile_image_url
@@ -204,7 +204,7 @@ const userController = {
   // POST /api/users
   createUser: async (req, res, next) => {
     try {
-      const { email, firstName, lastName } = req.body;
+      const { email, first_name, last_name } = req.body;
       // Force role to STUDENT for all admin-panel created users
       const role = 'STUDENT';
 
@@ -212,8 +212,8 @@ const userController = {
       const newUser = await authService.createUserAndSendCredentials(
         req.supabase,
         email,
-        firstName,
-        lastName,
+        first_name,
+      last_name,
         role
       );
 
@@ -309,12 +309,12 @@ const userController = {
   // PUT /api/users/me
   updateCurrentUser: async (req, res, next) => {
     try {
-      const { firstName, lastName } = req.body;
+      const { first_name, last_name } = req.body;
       
       const updatedUser = await userService.updateUserProfile(
         req.supabase,
         req.user.user_id,
-        { firstName, lastName }
+        { first_name, last_name }
       );
 
       res.status(200).json({

@@ -207,9 +207,10 @@ class SubmissionService {
           updated_at,
           users (
             user_id,
-            firstName,
-            lastName,
-            email
+            first_name,
+            last_name,
+            email,
+            role
           )
         `)
         .eq('assignment_id', assignmentId)
@@ -245,9 +246,10 @@ class SubmissionService {
           updated_at,
           users (
             user_id,
-            firstName,
-            lastName,
-            email
+            first_name,
+            last_name,
+            email,
+            role
           ),
           assignments (
             assignment_id,

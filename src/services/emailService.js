@@ -62,7 +62,9 @@ class EmailService {
         scheduledDate,
         scheduledTime,
         meetingLink,
-        price
+        price,
+        first_name,
+        last_name
       } = bookingData;
 
       const subject = `Mentorship Session Confirmation - ${instructorName}`;
@@ -164,7 +166,9 @@ class EmailService {
         scheduledDate,
         scheduledTime,
         meetingLink,
-        price
+        price,
+        first_name,
+        last_name
       } = bookingData;
 
       const subject = `New Mentorship Booking - ${scheduledDate} ${scheduledTime}`;
@@ -243,7 +247,9 @@ class EmailService {
         customerEmail,
         scheduledDate,
         scheduledTime,
-        meetingLink
+        meetingLink,
+        first_name,
+        last_name
       } = bookingData;
 
       const subject = `New Mentorship Booking - ${customerName}`;
@@ -332,7 +338,9 @@ class EmailService {
         instructorName,
         scheduledDate,
         scheduledTime,
-        price
+        price,
+        first_name,
+        last_name
       } = bookingData;
 
       const subject = `Mentorship Session Cancelled - ${instructorName}`;
@@ -427,7 +435,9 @@ class EmailService {
         customerName,
         customerEmail,
         scheduledDate,
-        scheduledTime
+        scheduledTime,
+        first_name,
+        last_name
       } = bookingData;
 
       const subject = `Mentorship Session Cancelled - ${customerName}`;
@@ -513,7 +523,9 @@ class EmailService {
         courseTitle,
         coursePrice,
         accessCode,
-        instructorName
+        instructorName,
+        first_name,
+        last_name
       } = purchaseData;
 
       const subject = `Course Purchase Confirmation - ${courseTitle}`;
@@ -621,7 +633,9 @@ class EmailService {
         customerName,
         customerEmail,
         courseTitle,
-        coursePrice
+        coursePrice,
+        first_name,
+        last_name
       } = purchaseData;
 
       const subject = `New Course Purchase - ${courseTitle}`;
@@ -704,8 +718,8 @@ class EmailService {
       const {
         email,
         username,
-        firstName,
-        lastName,
+        first_name,
+        last_name,
         plainPassword
       } = userData;
 
@@ -736,7 +750,7 @@ class EmailService {
             </div>
             
             <div class="content">
-              <p>Dear ${firstName} ${lastName},</p>
+              <p>Dear ${first_name} ${last_name},</p>
               
               <p>Thank you for purchasing <strong>${courseTitle}</strong>! Your university account has been created automatically.</p>
               

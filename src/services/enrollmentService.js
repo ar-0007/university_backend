@@ -52,7 +52,7 @@ const enrollmentService = {
         .from('enrollments')
         .select(`
           *,
-          users ( user_id, email, firstName, lastName ),
+          users ( user_id, email, first_name, last_name ),
           courses ( course_id, title )
         `);
   
@@ -87,7 +87,7 @@ const enrollmentService = {
         .from('enrollments')
         .select(`
           *,
-          users ( user_id, email, firstName, lastName ),
+          users ( user_id, email, first_name, last_name ),
           courses ( course_id, title )
         `)
         .eq('enrollment_id', enrollmentId)
@@ -193,8 +193,8 @@ const enrollmentService = {
             created_at,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+      last_name,
               email
             )
           )

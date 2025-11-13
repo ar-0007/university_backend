@@ -10,7 +10,7 @@ const userService = {
     try {
       const { data: user, error } = await supabase
         .from('users')
-        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at')
+        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at')
         .eq('user_id', userId)
         .single();
 
@@ -34,7 +34,7 @@ const userService = {
     try {
       const { data: users, error } = await supabase
         .from('users')
-        .select('user_id, email, firstName, lastName, role, is_active, created_at, updated_at')
+        .select('user_id, email, first_name, last_name, role, is_active, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -52,7 +52,7 @@ const userService = {
    * Updates a user's profile information (e.g., first name, last name).
    * @param {object} supabase - The Supabase client instance.
    * @param {string} userId - The UUID of the user to update.
-   * @param {object} updates - An object containing fields to update (e.g., { firstName: 'NewName' }).
+   * @param {object} updates - An object containing fields to update (e.g., { first_name: 'NewName' }).
    * @returns {Promise<object>} The updated user object.
    */
   updateUserProfile: async (supabase, userId, updates) => {
@@ -60,8 +60,8 @@ const userService = {
       const { data: updatedUser, error } = await supabase
         .from('users')
         .update({
-          firstName: updates.firstName,
-      lastName: updates.lastName,
+          first_name: updates.first_name,
+      last_name: updates.last_name,
           updated_at: new Date().toISOString() // Trigger updated_at manually if not using DB trigger
         })
         .eq('user_id', userId)
@@ -145,8 +145,8 @@ const userService = {
        
              // Parse customer name into first and last name
              const nameParts = purchaseData.customer_name.trim().split(' ');
-             const firstName = nameParts[0] || '';
-             const lastName = nameParts.slice(1).join(' ') || '';
+             const first_name = nameParts[0] || '';
+      const last_name = nameParts.slice(1).join(' ') || '';
        
              // Create new user
              const { data: newUser, error: createError } = await supabase
@@ -155,12 +155,12 @@ const userService = {
                  email: purchaseData.customer_email,
                  password_hash: hashedPassword,
                  salt: salt,
-                 firstName: firstName,
-      lastName: lastName,
+                 first_name: first_name,
+              last_name: last_name,
                  role: 'STUDENT',
                  is_active: true
                })
-               .select('user_id, email, firstName, lastName, role, is_active')
+               .select('user_id, email, first_name, last_name, role, is_active')
                .single();
 
       if (createError) {
@@ -191,7 +191,7 @@ const userService = {
       // Get existing user
       const { data: existingUser, error: fetchError } = await supabase
         .from('users')
-        .select('user_id, email, firstName, lastName, role, is_active')
+        .select('user_id, email, first_name, last_name, role, is_active')
         .eq('email', email)
         .single();
 
@@ -225,7 +225,7 @@ const userService = {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', existingUser.user_id)
-        .select('user_id, email, firstName, lastName, role, is_active')
+        .select('user_id, email, first_name, last_name, role, is_active')
         .single();
 
       if (updateError) {

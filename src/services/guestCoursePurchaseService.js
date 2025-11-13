@@ -38,8 +38,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )
@@ -75,8 +75,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )
@@ -122,8 +122,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )
@@ -160,8 +160,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )
@@ -205,8 +205,8 @@ class GuestCoursePurchaseService {
             created_at,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
               
@@ -268,8 +268,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )
@@ -530,8 +530,8 @@ class GuestCoursePurchaseService {
             price,
             instructor:instructors(
               instructor_id,
-              firstName,
-              lastName,
+              first_name,
+              last_name,
               email
             )
           )

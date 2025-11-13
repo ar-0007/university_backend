@@ -40,8 +40,8 @@ const createGuestCoursePurchase = async (req, res) => {
         price,
         instructor:instructors(
           instructor_id,
-          firstName,
-      lastName,
+          first_name,
+      last_name,
           email
         )
       `)
@@ -305,7 +305,7 @@ const updatePaymentStatus = async (req, res) => {
           courseTitle: purchase.course.title,
           coursePrice: purchase.course_price,
           accessCode: purchase.access_code,
-          instructorName: purchase.course.instructor ? `${purchase.course.instructor.firstName} ${purchase.course.instructor.lastName}` : 'Course Instructor'
+          instructorName: purchase.course.instructor ? `${purchase.course.instructor.first_name} ${purchase.course.instructor.last_name}` : 'Course Instructor'
         });
         console.log(`Course purchase confirmation email sent to: ${purchase.customer_email} (${isNewUser ? 'new' : 'existing'} user)`);
 

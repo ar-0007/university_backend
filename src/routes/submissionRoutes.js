@@ -113,10 +113,10 @@ router.get('/',
           updated_at: submission.updated_at,
           status: submission.grade !== null ? 'graded' : 'submitted',
           user: {
-            firstName: submission.users?.firstName || 'Unknown',
-        lastName: submission.users?.lastName || 'User',
+            first_name: submission.users?.first_name || 'Unknown',
+            last_name: submission.users?.last_name || 'User',
             email: submission.users?.email || 'unknown@example.com'
-          },
+          }
           assignment: {
             title: submission.assignments?.title || 'Unknown Assignment',
             max_score: submission.assignments?.max_score || 100

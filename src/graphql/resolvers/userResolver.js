@@ -25,7 +25,7 @@ const userResolvers = {
   },
   Mutation: {
     // Admin-triggered user account creation (for new students after website payment)
-    createUserAccount: async (parent, { email, firstName, lastName, role }, context) => {
+    createUserAccount: async (parent, { email, first_name, last_name, role }, context) => {
       // This mutation should only be callable by an 'admin' role
       if (!context.user || context.user.role !== 'admin') {
         throw new Error('Unauthorized: Only administrators can create user accounts.');
@@ -35,8 +35,8 @@ const userResolvers = {
       const newUser = await authService.createUserAndSendCredentials(
         context.supabase,
         email,
-        firstName,
-        lastName,
+        first_name,
+      last_name,
         role
       );
       return newUser; // Return relevant user data (e.g., user_id, email)
@@ -58,18 +58,18 @@ const userResolvers = {
       return "Password changed successfully.";
     },
 
-    // Placeholder for updating user profile (e.g., firstName, lastName from app)
-    updateUserProfile: async (parent, { firstName, lastName }, context) => {
+    // Placeholder for updating user profile (e.g., first_name, last_name from app)
+    updateUserProfile: async (parent, { first_name, last_name }, context) => {
       if (!context.user) {
         throw new Error('Not authenticated.');
       }
-      const updatedUser = await userService.updateUserProfile(context.supabase, context.user.id, { firstName, lastName });
+      const updatedUser = await userService.updateUserProfile(context.supabase, context.user.id, { first_name, last_name });
       return updatedUser;
     }
   },
   // If you have fields in your User type that need custom resolution (e.g., a computed field)
   // User: {
-  //   fullName: (parent) => `${parent.firstName} ${parent.lastName}`,
+  //   fullName: (parent) => `${parent.first_name} ${parent.last_name}`,
   // },
 };
 

@@ -14,8 +14,8 @@ const userTypeDefs = gql`
   type User {
     id: ID!
     email: String!
-    firstName: String!
-    lastName: String!
+    first_name: String!
+    last_name: String!
     role: UserRole!
     isActive: Boolean!
     createdAt: String!
@@ -24,8 +24,8 @@ const userTypeDefs = gql`
 
   input UserInput {
     email: String!
-    firstName: String!
-    lastName: String!
+    first_name: String!
+    last_name: String!
     role: UserRole!
   }
 

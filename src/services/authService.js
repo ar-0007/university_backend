@@ -17,12 +17,12 @@ const authService = {
    * This is triggered by an admin after a website course purchase is confirmed.
    * @param {object} supabase - The Supabase client instance.
    * @param {string} email - User's email.
-   * @param {string} firstName - User's first name.
-   * @param {string} lastName - User's last name.
+   * @param {string} first_name - User's first name.
+* @param {string} last_name - User's last name.
    * @param {string} role - User's role ('student' or 'admin').
    * @returns {Promise<object>} The newly created user object (excluding sensitive data).
    */
-  createUserAndSendCredentials: async (supabase, email, firstName, lastName, role) => {
+  createUserAndSendCredentials: async (supabase, email, first_name, last_name, role) => {
     try {
       // 1. Generate a temporary password
       const tempPassword = Math.random().toString(36).slice(-8); // Generate an 8-char random string
@@ -44,8 +44,8 @@ const authService = {
             email,
             password_hash: hashedPassword,
             salt,
-            firstName: firstName,
-            lastName: lastName,
+            first_name: first_name,
+      last_name: last_name,
             role,
             is_active: true,
           },
@@ -61,7 +61,7 @@ const authService = {
       // 3. Send credentials via email
       const emailSubject = 'Welcome to Detailers University! Your Login Credentials';
       const emailText = `
-        Dear ${firstName},
+        Dear ${first_name},
 
         Welcome to Detailers University! Your account has been created.
         You can log in to the mobile app using the following credentials:
@@ -80,8 +80,8 @@ const authService = {
       return {
         id: newUser.user_id,
         email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
+        first_name: newUser.first_name,
+      last_name: newUser.last_name,
         role: newUser.role,
         isActive: newUser.is_active,
         createdAt: newUser.created_at,
@@ -106,7 +106,7 @@ const authService = {
       // 1. Fetch user from our 'public.users' table
       const { data: user, error: fetchError } = await supabase
         .from('users')
-        .select('user_id, email, password_hash, salt, firstName, lastName, role, is_active')
+        .select('user_id, email, password_hash, salt, first_name, last_name, role, is_active')
         .eq('email', email)
         .single();
 
@@ -142,8 +142,8 @@ const authService = {
         user: {
           id: user.user_id,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          first_name: user.first_name,
+      last_name: user.last_name,
           role: user.role,
           isActive: user.is_active,
         },

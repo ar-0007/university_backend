@@ -67,8 +67,8 @@ const instructorController = {
     try {
       const {
         user_id,
-        firstName,
-      lastName,
+        first_name,
+      last_name,
         email,
         bio,
         profile_image_url,
@@ -80,7 +80,7 @@ const instructorController = {
       } = req.body;
 
       // Validate required fields
-      if (!firstName || !lastName || !email) {
+      if (!first_name || !last_name || !email) {
         return res.status(400).json({
           success: false,
           message: 'First name, last name, and email are required'
@@ -89,8 +89,8 @@ const instructorController = {
 
       const instructorData = {
         user_id,
-        firstName,
-        lastName,
+        first_name,
+      last_name,
         email,
         bio,
         profile_image_url,

@@ -69,8 +69,8 @@ const guestBookingService = {
           *,
           instructor:instructors(
             instructor_id,
-            firstName,
-            lastName,
+            first_name,
+            last_name,
             email,
             profile_image_url,
             hourly_rate
@@ -116,8 +116,8 @@ const guestBookingService = {
           *,
           instructor:instructors(
             instructor_id,
-            firstName,
-            lastName,
+            first_name,
+            last_name,
             email,
             profile_image_url,
             hourly_rate

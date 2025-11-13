@@ -35,7 +35,7 @@ const courseService = {
         .select(`
           *,
           categories:category_id(name, slug),
-          instructor:instructor_id(instructor_id, firstName, lastName, email, bio, specialties, experience_years, profile_image_url)
+          instructor:instructor_id(instructor_id, first_name, last_name, email, bio, specialties, experience_years, profile_image_url)
         `)
         .single();
   
@@ -91,7 +91,7 @@ const courseService = {
         .select(`
           *,
           categories:category_id(name, slug, description),
-          instructor:instructor_id(instructor_id, firstName, lastName, email, bio, specialties, experience_years, profile_image_url)
+          instructor:instructor_id(instructor_id, first_name, last_name, email, bio, specialties, experience_years, profile_image_url)
         `);
 
       if (isPublished) {
@@ -126,7 +126,7 @@ const courseService = {
         .select(`
           *,
           categories:category_id(name, slug, description),
-          instructor:instructor_id(instructor_id, firstName, lastName, email, bio, specialties, experience_years, profile_image_url)
+          instructor:instructor_id(instructor_id, first_name, last_name, email, bio, specialties, experience_years, profile_image_url)
         `)
         .eq('course_id', id)
         .single();
@@ -173,7 +173,7 @@ const courseService = {
         .select(`
           *,
           categories:category_id(name, slug, description),
-          instructor:instructor_id(instructor_id, firstName, lastName, email, bio, specialties, experience_years, profile_image_url)
+          instructor:instructor_id(instructor_id, first_name, last_name, email, bio, specialties, experience_years, profile_image_url)
         `)
         .single();
 
@@ -347,7 +347,7 @@ const courseService = {
         .select(`
           *,
           categories:category_id(name, slug, description),
-          instructor:instructor_id(instructor_id, firstName, lastName, email, bio, specialties, experience_years, profile_image_url)
+          instructor:instructor_id(instructor_id, first_name, last_name, email, bio, specialties, experience_years, profile_image_url)
         `)
         .eq('video_series', seriesName)
         .eq('is_published', true)

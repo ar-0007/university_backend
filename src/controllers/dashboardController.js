@@ -178,7 +178,7 @@ const dashboardController = {
           course_id,
           requested_at,
           status,
-          users!inner(user_id, firstName, lastName, email),
+          users!inner(user_id, first_name, last_name, email),
           courses!inner(course_id, title, thumbnail_url)
         `)
         .order('requested_at', { ascending: false })
@@ -217,8 +217,8 @@ const dashboardController = {
         status: enrollment.status,
         user: {
           user_id: enrollment.users.user_id,
-          firstName: enrollment.users.firstName,
-      lastName: enrollment.users.lastName,
+          first_name: enrollment.users.first_name,
+      last_name: enrollment.users.last_name,
           email: enrollment.users.email
         },
         course: {
@@ -227,7 +227,7 @@ const dashboardController = {
           thumbnail_url: enrollment.courses.thumbnail_url
         },
         // Computed properties for compatibility
-        userName: `${enrollment.users.firstName} ${enrollment.users.lastName}`,
+        userName: `${enrollment.users.first_name} ${enrollment.users.last_name}`,
         courseTitle: enrollment.courses.title,
         isGuest: false
       }));
@@ -242,8 +242,8 @@ const dashboardController = {
         status: 'active',
         user: {
           user_id: null,
-          firstName: enrollment.customer_name.split(' ')[0] || enrollment.customer_name,
-      lastName: enrollment.customer_name.split(' ').slice(1).join(' ') || '',
+          first_name: enrollment.customer_name.split(' ')[0] || enrollment.customer_name,
+      last_name: enrollment.customer_name.split(' ').slice(1).join(' ') || '',
           email: enrollment.customer_email
         },
         course: {
@@ -417,12 +417,12 @@ const dashboardController = {
           zoom_link,
           booked_at,
           created_at,
-          users!inner(user_id, firstName, lastName, email),
+          users!inner(user_id, first_name, last_name, email),
           mentorship_slots!inner(
             slot_id,
             start_time,
             end_time,
-            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, firstName, lastName, email)
+            mentor:users!mentorship_slots_mentor_user_id_fkey(user_id, first_name, last_name, email)
           )
         `)
         .gte('mentorship_slots.start_time', now)
@@ -443,7 +443,7 @@ const dashboardController = {
           payment_status,
           meeting_link,
           created_at,
-          instructors!inner(instructor_id, firstName, lastName, email)
+          instructors!inner(instructor_id, first_name, last_name, email)
         `)
         .gte('preferred_date', now.split('T')[0])
         .eq('payment_status', 'PAID')
@@ -472,19 +472,19 @@ const dashboardController = {
         created_at: booking.created_at,
         user: {
           user_id: booking.users.user_id,
-          firstName: booking.users.firstName,
-      lastName: booking.users.lastName,
+          first_name: booking.users.first_name,
+      last_name: booking.users.last_name,
           email: booking.users.email
         },
         mentor: {
           mentor_id: booking.mentorship_slots.mentor.user_id,
-          firstName: booking.mentorship_slots.mentor.firstName,
-      lastName: booking.mentorship_slots.mentor.lastName,
+          first_name: booking.mentorship_slots.mentor.first_name,
+      last_name: booking.mentorship_slots.mentor.last_name,
           email: booking.mentorship_slots.mentor.email
         },
         // Computed properties for compatibility
-        userName: `${booking.users.firstName} ${booking.users.lastName}`,
-      mentorName: `${booking.mentorship_slots.mentor.firstName} ${booking.mentorship_slots.mentor.lastName}`,
+        userName: `${booking.users.first_name} ${booking.users.last_name}`,
+      mentorName: `${booking.mentorship_slots.mentor.first_name} ${booking.mentorship_slots.mentor.last_name}`,
         isGuest: false
       }));
 
@@ -502,19 +502,19 @@ const dashboardController = {
         created_at: booking.created_at,
         user: {
           user_id: null,
-          firstName: booking.customer_name.split(' ')[0] || booking.customer_name,
-      lastName: booking.customer_name.split(' ').slice(1).join(' ') || '',
+          first_name: booking.customer_name.split(' ')[0] || booking.customer_name,
+      last_name: booking.customer_name.split(' ').slice(1).join(' ') || '',
           email: booking.customer_email
         },
         mentor: {
           mentor_id: booking.instructors.instructor_id,
-          firstName: booking.instructors.firstName,
-      lastName: booking.instructors.lastName,
+          first_name: booking.instructors.first_name,
+      last_name: booking.instructors.last_name,
           email: booking.instructors.email
         },
         // Computed properties for compatibility
         userName: `${booking.customer_name} (Guest)`,
-        mentorName: `${booking.instructors.firstName} ${booking.instructors.lastName}`,
+        mentorName: `${booking.instructors.first_name} ${booking.instructors.last_name}`,
         isGuest: true
       }));
 
