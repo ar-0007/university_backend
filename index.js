@@ -36,34 +36,11 @@ const adminSeriesUnlockRoutes = require('./src/routes/admin/seriesUnlock');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-<<<<<<< HEAD
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
   origin: true, // Allow all origins for development (React Native needs this)
-=======
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.JWT_SECRET) {
-    console.error('Missing required environment variables');
-    process.exit(1);
-  }
-  if (!process.env.SQUARE_ACCESS_TOKEN || !process.env.SQUARE_LOCATION_ID) {
-    console.error('Missing Square configuration');
-    process.exit(1);
-  }
-}
-
-// Security middleware
-app.use(helmet());
-const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').filter(Boolean);
-app.use(cors({
-  origin: (origin, callback) => {
-    if (process.env.NODE_ENV !== 'production') return callback(null, true);
-    if (!origin) return callback(null, true);
-    return callback(null, allowedOrigins.includes(origin));
-  },
->>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
   credentials: true
 }));
 
@@ -132,11 +109,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
   customSiteTitle: 'Detailers University API Documentation'
 }));
 
-<<<<<<< HEAD
-=======
- 
-
->>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -200,7 +172,3 @@ process.on('SIGINT', () => {
 
 module.exports = app;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
