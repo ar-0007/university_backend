@@ -31,7 +31,8 @@ const validatePaymentStatus = [
 ];
 
 const validatePaymentIntent = [
-  body('purchaseId').isUUID().withMessage('Purchase ID must be a valid UUID')
+  body('purchaseId').isUUID().withMessage('Purchase ID must be a valid UUID'),
+  body('sourceId').notEmpty().withMessage('Source ID is required')
 ];
 
 // Admin routes (authentication required) - Must come before parameter routes

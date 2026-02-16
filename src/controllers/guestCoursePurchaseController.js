@@ -116,9 +116,6 @@ const createGuestCoursePurchase = async (req, res) => {
   }
 };
 
-/**
- * Create payment intent for guest course purchase
- */
 const createPaymentIntent = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -134,7 +131,7 @@ const createPaymentIntent = async (req, res) => {
     }
 
     const supabase = getSupabaseClient();
-    const { purchaseId } = req.body;
+    const { purchaseId, sourceId, idempotencyKey } = req.body;
 
     // Get purchase details
     const purchase = await guestCoursePurchaseService.getGuestCoursePurchaseById(supabase, purchaseId);
@@ -160,42 +157,44 @@ const createPaymentIntent = async (req, res) => {
       });
     }
 
-    // Create Stripe payment intent
-    const paymentIntentResult = await stripeService.createPaymentIntent({
+    const paymentResult = await stripeService.createPayment({
       amount: purchase.course_price,
       currency: 'usd',
+      sourceId,
+      idempotencyKey: idempotencyKey || `${purchase.purchase_id}-${Date.now()}`,
       customerEmail: purchase.customer_email,
       courseTitle: purchase.course_title,
       purchaseId: purchase.purchase_id
     });
 
-    if (!paymentIntentResult.success) {
+    if (!paymentResult.success) {
       return res.status(500).json({
         success: false,
         error: {
-          code: 'PAYMENT_INTENT_CREATION_FAILED',
-          message: paymentIntentResult.error.message
+          code: 'PAYMENT_CREATION_FAILED',
+          message: paymentResult.error.message
         }
       });
     }
 
-    // Update purchase with payment intent ID
-    await guestCoursePurchaseService.updatePaymentIntentId(
+    const updatedPurchase = await guestCoursePurchaseService.updatePaymentStatus(
       supabase,
       purchaseId,
-      paymentIntentResult.data.payment_intent_id
+      'PAID',
+      'square',
+      paymentResult.data.payment_id
     );
 
     res.status(200).json({
       success: true,
       data: {
-        client_secret: paymentIntentResult.data.client_secret,
-        payment_intent_id: paymentIntentResult.data.payment_intent_id,
-        amount: paymentIntentResult.data.amount,
-        currency: paymentIntentResult.data.currency,
-        purchase_id: purchaseId
+        payment_id: paymentResult.data.payment_id,
+        status: paymentResult.data.status,
+        amount: paymentResult.data.amount,
+        currency: paymentResult.data.currency,
+        purchase: updatedPurchase
       },
-      message: 'Payment intent created successfully'
+      message: 'Payment completed successfully'
     });
   } catch (error) {
     console.error('Error creating payment intent:', error);

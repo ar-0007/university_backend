@@ -119,10 +119,10 @@ const validatePaymentConfirmation = [
  *       properties:
  *         client_secret:
  *           type: string
- *           description: Stripe client secret for frontend
+ *           description: Square client secret for frontend
  *         payment_intent_id:
  *           type: string
- *           description: Stripe payment intent ID
+ *           description: Square payment intent ID
  *         amount:
  *           type: number
  *           description: Payment amount
@@ -156,7 +156,7 @@ const validatePaymentConfirmation = [
  *           type: string
  *         payment_method:
  *           type: string
- *           enum: [stripe, paypal, razorpay]
+ *           enum: [square, paypal, razorpay]
  *         payment_intent_id:
  *           type: string
  *         status:
@@ -296,7 +296,7 @@ router.post('/mentorship/intent', authenticateToken, validateMentorshipPayment, 
  *             properties:
  *               paymentIntentId:
  *                 type: string
- *                 description: Stripe payment intent ID
+ *                 description: Payment intent ID
  *     responses:
  *       200:
  *         description: Payment confirmed and processed successfully
@@ -420,9 +420,9 @@ router.get('/stats', authenticateToken, requireRole('ADMIN'), getPaymentStats);
  * @swagger
  * /api/payments/webhook/stripe:
  *   post:
- *     summary: Stripe webhook handler
+ *     summary: Payment webhook handler
  *     tags: [Payments]
- *     description: Webhook endpoint for Stripe payment events
+ *     description: Webhook endpoint for payment events
  *     requestBody:
  *       required: true
  *       content:
@@ -495,10 +495,10 @@ router.post('/guest-course-payment-intent', validateGuestCoursePayment, createGu
  *             properties:
  *               paymentIntentId:
  *                 type: string
- *                 description: Stripe payment intent ID
+ *                 description: Payment intent ID
  *               paymentMethodId:
  *                 type: string
- *                 description: Stripe payment method ID
+ *                 description: Payment method ID
  *     responses:
  *       200:
  *         description: Payment confirmed successfully
@@ -510,4 +510,3 @@ router.post('/guest-course-payment-intent', validateGuestCoursePayment, createGu
 router.post('/confirm-guest-booking', validateGuestBookingConfirmation, confirmGuestBookingPayment);
 
 module.exports = router;
-

@@ -27,7 +27,6 @@ const mentorshipRoutes = require('./src/routes/mentorshipRoutes');
 const publicMentorshipRoutes = require('./src/routes/publicMentorshipRoutes');
 const guestBookingRoutes = require('./src/routes/guestBookingRoutes');
 const guestCoursePurchaseRoutes = require('./src/routes/guestCoursePurchaseRoutes');
-const stripeWebhookRoutes = require('./src/routes/stripeWebhookRoutes');
 const assignmentRoutes = require('./src/routes/assignmentRoutes');
 const submissionRoutes = require('./src/routes/submissionRoutes');
 const quizRoutes = require('./src/routes/quizRoutes');
@@ -110,9 +109,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
   customSiteTitle: 'Detailers University API Documentation'
 }));
 
-// Stripe webhook (must be before other routes due to raw body requirement)
-app.use('/api/stripe', stripeWebhookRoutes);
-
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -175,5 +171,4 @@ process.on('SIGINT', () => {
 });
 
 module.exports = app;
-
 
