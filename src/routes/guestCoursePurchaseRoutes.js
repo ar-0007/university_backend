@@ -31,8 +31,12 @@ const validatePaymentStatus = [
 ];
 
 const validatePaymentIntent = [
+<<<<<<< HEAD
   body('purchaseId').isUUID().withMessage('Purchase ID must be a valid UUID'),
   body('sourceId').notEmpty().withMessage('Source ID is required')
+=======
+  body('purchaseId').isUUID().withMessage('Purchase ID must be a valid UUID')
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
 ];
 
 // Admin routes (authentication required) - Must come before parameter routes
@@ -56,4 +60,8 @@ router.put('/:purchaseId/payment', validatePaymentStatus, updatePaymentStatus);
 router.delete('/:purchaseId', authenticateToken, requireRole('ADMIN'), deleteGuestCoursePurchase);
 router.post('/:purchaseId/send-credentials', authenticateToken, requireRole('ADMIN'), sendCredentials);
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be

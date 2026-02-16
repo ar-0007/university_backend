@@ -2,10 +2,17 @@ const nodemailer = require('nodemailer');
 
 class EmailService {
   constructor() {
+<<<<<<< HEAD
     // Check if email configuration is available
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.warn('Email configuration not found. Email service will be disabled.');
       this.transporter = null;
+=======
+    // Initialize transporter. If env is missing, use JSON transport to avoid disabling emails.
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('Email configuration not set yet. Using JSON transport until credentials are provided.');
+      this.transporter = nodemailer.createTransport({ jsonTransport: true });
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
       return;
     }
 
@@ -28,19 +35,32 @@ class EmailService {
         logger: process.env.NODE_ENV === 'development'  // Enable logging in development
       });
 
+<<<<<<< HEAD
       // Test the connection
       this.transporter.verify((error, success) => {
         if (error) {
           console.error('❌ Email service connection failed:', error.message);
           console.log('⚠️  Email service will be disabled. Check your .env configuration.');
           this.transporter = null;
+=======
+      // Test the connection (skip for JSON transport)
+      this.transporter.verify((error, success) => {
+        if (error) {
+          console.error('❌ Email service connection failed:', error.message);
+          console.log('⚠️  Continuing with JSON transport until valid SMTP credentials are provided.');
+          this.transporter = nodemailer.createTransport({ jsonTransport: true });
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
         } else {
           console.log('✅ Email service connected successfully!');
         }
       });
     } catch (error) {
       console.error('❌ Failed to initialize email service:', error.message);
+<<<<<<< HEAD
       this.transporter = null;
+=======
+      this.transporter = nodemailer.createTransport({ jsonTransport: true });
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
     }
   }
 

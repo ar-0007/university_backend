@@ -245,7 +245,11 @@ CREATE TABLE IF NOT EXISTS payments (
     mentorship_slot_id UUID REFERENCES mentorship_slots(slot_id) ON DELETE SET NULL,
     amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
     currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+<<<<<<< HEAD
     payment_method VARCHAR(20) NOT NULL DEFAULT 'stripe',
+=======
+    payment_method VARCHAR(20) NOT NULL DEFAULT 'square',
+>>>>>>> a43adc044a208bf23c09bb233a2fc3281d4b28be
     payment_intent_id VARCHAR(255) UNIQUE NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
